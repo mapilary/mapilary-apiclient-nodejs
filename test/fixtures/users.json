@@ -1,0 +1,32 @@
+[{
+    "username": "delete",
+    "password": "delete",
+    "company": "test",
+    "status": "active",
+    "registrationDate": "2015-01-01T08:00:00Z",
+    "profile": {
+      "titleBefore": "",
+      "name": "Alvarado",
+      "surname": "Kim",
+      "titleAfter": "",
+      "age": 24,
+      "phoneNr": "+1 (901) 429-2670",
+      "email": "delete@test.com"
+    },
+    "roles": ["courier"]
+}, {
+    "username": "online",
+    "password": "online",
+    "company": "test",
+    "status": "active",
+    "registrationDate": "2015-01-01T08:00:00Z",
+    "roles": ["courier"],
+    "stats": {
+      "online": true
+    },
+    "profile": {
+      "name": "Charlie",
+      "surname": "Sheen",
+      "email": "sheen@test.com"
+    }    
+}]

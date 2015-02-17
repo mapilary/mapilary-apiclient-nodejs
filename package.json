@@ -1,15 +1,22 @@
 {
-  "name": "mapilary-apiclient",
-  "version": "1.0.3",
+  "name": "mapilary-apiclient-nodejs",
+  "version": "1.0.4",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/runner.js test/spec/"
   },
   "author": {
     "name": "Marian Hello",
     "email": "marian.hello@mapilary.com"
   },
-  "license": "Mapilary",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mapilary/mapilary-apiclient-nodejs"
+  },
+  "bugs": {
+    "url": "https://github.com/mapilary/mapilary-apiclient-nodejs/issues"
+  },
+  "license": "MAPILARY",
   "dependencies": {
     "underscore": "^1.7.0",
     "bluebird": "~2.3.11",
@@ -20,6 +27,8 @@
   },
   "devDependencies": {
     "chai": "^1.10.0",
+    "mocha": "^2.1.0",
+    "mongodb": "~2.0",
     "sinon": "^1.11.1",
     "sinon-chai": "^2.6.0"
   }

@@ -1,15 +1,17 @@
-var sinon = require('sinon');
-var sinonChai = require('sinon-chai');
-var chai = require('chai');
-var should = chai.should();
-var e = require('../lib/errorTypes');
-var client = require('../lib/client');
-var conf = require('./config.test.json');
+require('../common.js');
+var _          = require('underscore'),
+    chai       = require('chai'),
+    sinon      = require('sinon'),
+    sinonChai  = require('sinon-chai'),
+    e          = require('../../lib/errorTypes'),
+    reqHandler = require('../../lib/reqHandler'),
+    conf       = require('../config.test.json');
+
 chai.should();
 chai.use(sinonChai);
 
 function apiAuth(api) {
-    api.users.getUser.operation.apiObject.apiDeclaration.authorizations = {
+    api.users.get.operation.apiObject.apiDeclaration.authorizations = {
         apiKey: {
             type: 'apiKey',
             passAs: 'query',
@@ -19,13 +21,10 @@ function apiAuth(api) {
     return api;
 }
 
-describe('mapilary-apiclient auth tests', function() {
-
-    var accessToken = conf.accessToken
+describe('authentication', function() {
 
     it('should not obtain access_token', function(done) {
-        var api = client();
-        api.authentication.userLogin(null, {
+        api().authentication.login(null, {
             callback: function (err, user) {
                 if (err) {
                     err.message.should.contain('Authorization header is required');
@@ -38,27 +37,26 @@ describe('mapilary-apiclient auth tests', function() {
     });
 
     it('should obtain access_token successfully', function(done) {
-        var api = client();
-        api.authentication.userLogin(null, {
-            auth: {
-                user: conf.userId,
-                pass: conf.password
-            },
+        var user = _.findWhere(fixtures.users, {username: 'courier'});
+        var auth = {
+            user: [user.username, user.company].join('#'),
+            pass: user.password
+        };
+        console.log(auth);
+        api().authentication.login(null, {
+            auth: auth,
             callback: function (err, user) {
-                if (err) {
-                    return done(err);
-                }
+                if (err) { return done(err); }
                 return done();
             }
         });
     });
 
     it('should not authorize user on request level', function(done) {
-        var requestHandler = sinon.spy(require('../lib/reqHandler'));
+        var requestHandler = sinon.spy(reqHandler);
         // var api = apiAuth(client({ requestHandler: requestHandler }));
-        var api = client();
         // api.auth(accessToken);
-        api.users.getUser({ id: 'this' }, {
+        api().users.get({ id: 'this' }, {
             callback: function (err, user) {
                 if (err) {
                     err.message.should.contain('Authorization via bearer token required');
@@ -75,12 +73,9 @@ describe('mapilary-apiclient auth tests', function() {
     });
 
     it('should authorize user on request level', function(done) {
-        var requestHandler = sinon.spy(require('../lib/reqHandler'));
-        var api = client();
-        api.users.getUser({ id: 'this' }, {
-            auth: {
-                bearer: accessToken
-            },
+        var requestHandler = sinon.spy(reqHandler);
+        api().users.get({ id: 'this' }, {
+            auth: { bearer: conf.accessToken },
             callback: function (err, user) {
                 if (err) {
                     return done(err);

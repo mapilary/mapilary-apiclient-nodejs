@@ -1,6 +1,19 @@
 {
 	"url": "http://localhost:8888",
 	"accessToken": "12345",
-	"userId": "userId",
-	"password": "password"
+	"testUser": "root",
+    "db": {
+        "mongo": {
+            "host": "localhost",
+            "db": "mapilary-test",
+            "port": 27017,
+            "user": "",
+            "pass": ""
+        },        
+        "redis": {
+            "port": 6379,
+            "host": "ip-10-0-1-149.eu-west-1.compute.internal",
+            "options": {}
+        }
+    }	
 }
