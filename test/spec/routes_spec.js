@@ -5,18 +5,32 @@ var _          = require('underscore'),
     expect     = chai.expect,
     sinon      = require('sinon'),
     sinonChai  = require('sinon-chai'),
-    reqHandler = require('../../lib/reqHandler'),
-    conf       = require('../config.test.json');
+    reqHandler = require('../../lib/reqHandler')(),
+    conf       = require('../config.test.json'),
+    e          = require('../../lib/errorTypes');
 
 var should = chai.should();
 chai.use(sinonChai);
 
 describe('routes', function () {
 
+    var accessToken;
+
+    before(function (done) {
+        getToken('admin@test.com', 'admin')
+        .then(function (token) {
+            accessToken = token;
+            return done();
+        })
+        .catch(function (err) {
+            return done(err);
+        });
+    });
+    
     it('should find route by id', function (done) {
         var route = _.findWhere(fixtures.routes, {note: 'update'});
         api().routes.getById({id: route._id}, {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res._id.should.equal(route._id);
@@ -28,9 +42,10 @@ describe('routes', function () {
     it('should not find route by id', function (done) {
         var route = _.findWhere(fixtures.routes, {note: 'update'});
         api().routes.getById({id: 'AABBCCDDEEFFAABBCCDDEEFF'}, {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
-                err.message.should.equal('route AABBCCDDEEFFAABBCCDDEEFF not found');
+                err.should.be.an.instanceof(e.ResourceNotFound);
+                err.message.should.equal('Resource not found');
                 if (res) { done(new Error('route was found')); }
                 done();
             }
@@ -43,53 +58,15 @@ describe('routes', function () {
             "startDate": "2015-01-25T08:30:00.000Z",
             "endDate": "2015-01-25T10:00:00.000Z",
             "note": "Dolor nulla ad sit nisi irure reprehenderit.",
-            "state": "Created",
-            "deliveries": [{
-                "trackingNr": "BA1000",
-                "startDate": "2014-09-24T22:00:00.000Z",
-                "company": "test",
-                "priority": 1,
-                "note": "pls call me 30 mins in advance",
-                "routeStartOffset": -0.5648803710933237,
-                "duration": 7200,
-                "courierRating": null,
-                "state": "Created",
-                "addresses": [{
-                    "type": "drop",
-                    "consignee": "John Smith",
-                    "phoneNr": "00421903475680",
-                    "email": "john@john.john",
-                    "city": "Bratislava",
-                    "street": "Palisady 10",
-                    "countryCode": "Slovakia",
-                    "validFrom": "2014-09-25T14:00:45.702Z",
-                    "validTo": "2014-09-25T16:00:45.708Z",
-                    "coords": {
-                      "latitude": 48.147183,
-                      "longitude": 17.100051
-                    }
-                }]
-            }]
+            "state": "Created"
         };
         api().routes.create([route], {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
-                console.log(res);
                 if (err) { return done(err); }
-                res.should.include(_.omit(route, 'deliveries'));
-                var delivery = res.deliveries[0];
-                delivery.trackingNr.should.equal('BA1000');
-                delivery.startDate.should.equal('2014-09-24T22:00:00.000Z');
-                delivery.company.should.equal('test');
-                delivery.priority.should.equal(1);
-                delivery.priority.should.equal(1);
-                delivery.note.should.equal('pls call me 30 mins in advance');
-                delivery.routeStartOffset.should.equal(-0.5648803710933237);
-                delivery.duration.should.equal(7200);
-                should.not.exist(delivery.courierRating);
-                delivery.state.should.equal('Assigned');
-                delivery.addresses[0].should.include(_.omit(route.deliveries[0].addresses[0], 'coords'));
-                delivery.addresses[0].coords.should.eql(route.deliveries[0].addresses[0].coords);
+                res.should.be.instanceof(Array);
+                res.should.have.length(1);
+                res[0].should.include(_.omit(route, 'company'));
                 done();
             }
         });
@@ -97,12 +74,11 @@ describe('routes', function () {
 
     it('should delete route', function (done) {
         var route = _.findWhere(fixtures.routes, {note: 'delete'});
-        // console.log(route);
-        api().routes.delete({id: route._id}, {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+        api({simple: true, resolveWithFullResponse: true}).routes.delete({id: route._id}, {
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
-                res.message.should.equal('route has been deleted');
+                res.statusCode.should.equal(204);
                 done();
             }
         });
@@ -119,10 +95,10 @@ describe('routes', function () {
                     note: 'new note'
                 }
             }, {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
-                console.log(res);
+                //console.log(res);
                 res.note.should.equal('new note');
                 done();
             }
@@ -132,7 +108,7 @@ describe('routes', function () {
     it('should return all routes', function (done) {
         api().routes.get({},
             {
-                headers: { Authorization: 'Bearer ' + conf.accessToken },
+                headers: { Authorization: 'Bearer ' + accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
                     res.should.have.length(5);
@@ -145,15 +121,15 @@ describe('routes', function () {
         var spy = sinon.spy(reqHandler);
         api({ requestHandler: spy })
             .routes.get({
-                // embed: 'deliveries',
+                embed: 'deliveries',
                 startDate: '{gte}2015-01-07T00:00:00Z',
                 endDate: '{lte}2015-01-08T00:00:00Z'
             }, {
-                headers: { Authorization: 'Bearer ' + conf.accessToken },
+                headers: { Authorization: 'Bearer ' + accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
                     spy.should.have.been.calledOnce;
-                    // expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/routes?startDate=%7Bgte%7D2015-01-07T16%3A00%3A00Z&endDate=%7Blte%7D2015-01-08T00%3A00%3A00Z&embed=deliveries');
+                    expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/routes?startDate=%7Bgte%7D2015-01-07T00%3A00%3A00Z&endDate=%7Blte%7D2015-01-08T00%3A00%3A00Z&embed=deliveries');
                     res.should.have.length(2);
                     // console.log(res);
                     done();                 

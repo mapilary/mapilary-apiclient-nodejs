@@ -3,6 +3,7 @@ var _          = require('underscore'),
     chai       = require('chai'),
     Promise    = require('bluebird'),
     expect     = chai.expect,
+    e          = require('../../lib/errorTypes'),
     sinon      = require('sinon'),
     sinonChai  = require('sinon-chai'),
     reqHandler = require('../../lib/reqHandler'),
@@ -13,11 +14,24 @@ chai.use(sinonChai);
 
 describe('deliveries', function () {
 
+    var accessToken;
+
+    before(function (done) {
+        getToken('admin@test.com', 'admin')
+        .then(function (token) {
+            accessToken = token;
+            return done();
+        })
+        .catch(function (err) {
+            return done(err);
+        });
+    });
+
     it('should create new delivery', function (done) {
         var delivery = {
-            "trackingNr": "BA1000",
+            "trackingNr": "NEWDELIVERY",
             "startDate": "2014-09-24T22:00:00.000Z",
-            "company": "mapilary",
+            // "company": "mapilary",
             "priority": 1,
             "note": "pls call me 30 mins in advance",
             "routeStartOffset": 1000,
@@ -59,12 +73,13 @@ describe('deliveries', function () {
             ]
         };
         api().deliveries.create([delivery], {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
-                res.should.include(_.omit(delivery, 'addresses'));
-                _.omit(res.addresses[0], '_id', 'id').should.eql(delivery.addresses[0]);
-                _.omit(res.addresses[1], '_id', 'id').should.eql(delivery.addresses[1]);
+                // console.log(res);
+                res[0].should.include(_.omit(delivery, 'addresses'));
+                _.omit(res[0].addresses[0], '_id', 'id').should.eql(delivery.addresses[0]);
+                _.omit(res[0].addresses[1], '_id', 'id').should.eql(delivery.addresses[1]);
                 done();
             }
         });
@@ -75,20 +90,39 @@ describe('deliveries', function () {
         api().deliveries.update({
                 id: delivery._id,
                 props: {
-                    // company: 'test',
                     note: 'new note'
                 }
             }, {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
-                console.log(res);
                 res.note.should.equal('new note');
                 done();
             }
         });        
     });
 
+    it('should replace delivery', function (done) {
+        var delivery = _.findWhere(fixtures.deliveries, {trackingNr: 'BA1000'});
+        api().deliveries.replace({
+                id: delivery._id,
+                props: {
+                    trackingNr: 'KE1000',
+                    courierRating: 5,
+                    note: 'new note'
+                }
+            }, {
+            headers: { Authorization: 'Bearer ' + accessToken },
+            callback: function (err, res) {
+                if (err) { return done(err); }
+                res.should.have.keys('_id', 'addresses', 'company', 'courierRating', 'deviceTokens', 'trackingNr', 'note', 'priority', 'state');
+                res.addresses.should.be.empty();
+                res.courierRating.should.equal(5);
+                res.trackingNr.should.equal('KE1000');
+                done();
+            }
+        });        
+    });
     it('should return error on update non existing delivery', function (done) {
         api().deliveries.update({
                 id: 'AABBCCDDEEFFAABBCCDDEEFF',
@@ -96,21 +130,38 @@ describe('deliveries', function () {
                     note: 'new note'
                 }
             }, {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
-                err.message.should.equal('Resource not found');
+                // console.log(err, res.statusCode);
+                err.should.be.an.instanceof(e.InvalidRequestError);
+                err.message.should.equal('No delivery with given id exists!');
                 done();
             }
         });        
     });
 
+    it('should return error when deleting non existing delivery', function (done) {
+        api().deliveries.delete({id: 'AABBCCDDEEFFAABBCCDDEEFF'}, {
+            headers: { Authorization: 'Bearer ' + accessToken },
+            callback: function (err, res) {
+                if (err) {
+                    // console.log(res);
+                    err.should.be.an.instanceof(e.ResourceNotFound);
+                    err.message.should.equal('No delivery with given id exists!');
+                    return done();
+                }
+                return done(new Error('unexpected success'));
+            }
+        });
+    });
+
     it('should delete delivery', function (done) {
         var delivery = _.findWhere(fixtures.deliveries, {trackingNr: 'BA1001'});
-        api().deliveries.delete({id: delivery._id}, {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+        api({simple: false, resolveWithFullResponse: true }).deliveries.delete({id: delivery._id}, {
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
-                res.message.should.equal('delivery has been deleted');
+                res.statusCode.should.equal(204);
                 done();
             }
         });

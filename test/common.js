@@ -25,6 +25,24 @@ mongo = function () {
         });
 };
 
+getToken = function (user, password) {
+    return request
+        .postAsync([conf.url, 'token'].join('/'), {
+            json: true,
+            auth: {
+                user: user,
+                pass: password
+            }
+        })
+        .spread(function(response, body) {
+            if (!(/^2/.test(String(response.statusCode)))) {
+                var msg = ['Obtaining token for user ' + user + ' failed ' , JSON.stringify(body)].join('\n');
+                throw new Error(msg);
+            }
+            return body.access_token;
+        });
+};
+
 postFixture = function (path, fixture, accessToken) {
     return request.postAsync([conf.url, path].join('/'), {
         json: fixture,

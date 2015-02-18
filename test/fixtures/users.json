@@ -1,7 +1,49 @@
 [{
+    "username": "admin",
+    "password": "admin",
+    "status": "active",
+    "registrationDate": "2015-01-01T08:00:00Z",
+    "profile": {
+      "titleBefore": "",
+      "name": "Chris",
+      "surname": "Hague",
+      "titleAfter": "",
+      "age": 37,
+      "email": "admin@test.com"
+    },
+    "roles": ["admin"]
+}, {
+    "username": "dispatcher",
+    "password": "dispatcher",
+    "status": "active",
+    "registrationDate": "2015-01-01T08:00:00Z",
+    "profile": {
+      "titleBefore": "",
+      "name": "John",
+      "surname": "Connor",
+      "titleAfter": "",
+      "age": 37,
+      "email": "dispatcher@test.com"
+    },
+    "roles": ["dispatcher"]
+}, {
+    "username": "courier",
+    "password": "courier",
+    "status": "active",
+    "registrationDate": "2015-01-01T08:00:00Z",
+    "profile": {
+      "titleBefore": "",
+      "name": "Marko",
+      "surname": "Polo",
+      "titleAfter": "",
+      "age": 33,
+      "phoneNr": "+1 (921) 123-320",
+      "email": "courier@test.com"
+    },
+    "roles": ["courier"]
+}, {
     "username": "delete",
     "password": "delete",
-    "company": "test",
     "status": "active",
     "registrationDate": "2015-01-01T08:00:00Z",
     "profile": {
@@ -17,16 +59,25 @@
 }, {
     "username": "online",
     "password": "online",
-    "company": "test",
     "status": "active",
     "registrationDate": "2015-01-01T08:00:00Z",
     "roles": ["courier"],
-    "stats": {
-      "online": true
-    },
+    "online": true,
     "profile": {
       "name": "Charlie",
       "surname": "Sheen",
       "email": "sheen@test.com"
+    }    
+}, {
+    "username": "autodispatch",
+    "password": "autodispatch",
+    "status": "active",
+    "registrationDate": "2015-01-01T08:00:00Z",
+    "roles": ["courier"],
+    "online": true,
+    "profile": {
+      "name": "Bruce",
+      "surname": "Willis",
+      "email": "willis@test.com"
     }    
 }]

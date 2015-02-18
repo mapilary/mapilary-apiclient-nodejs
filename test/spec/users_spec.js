@@ -4,7 +4,7 @@ var _          = require('underscore'),
     expect     = chai.expect,
     sinon      = require('sinon'),
     sinonChai  = require('sinon-chai'),
-    reqHandler = require('../../lib/reqHandler'),
+    reqHandler = require('../../lib/reqHandler')(),
     conf       = require('../config.test.json');
 
 chai.should();
@@ -12,10 +12,23 @@ chai.use(sinonChai);
 
 describe('users', function () {
 
+    var accessToken;
+
+    before(function (done) {
+        getToken('admin@test.com', 'admin')
+        .then(function (token) {
+            accessToken = token;
+            return done();
+        })
+        .catch(function (err) {
+            return done(err);
+        });
+    });
+
     it('should get user', function (done) {
         var user = _.findWhere(fixtures.users, {username: 'online'});
         api().users.getById(user._id, {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res._id.toString().should.equal(user._id.toString());
@@ -44,14 +57,17 @@ describe('users', function () {
         };
 
         api().users.create([courier], { 
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
-                res.username.should.equal('akim');
-                res.company.should.equal('test');
-                new Date(res.registrationDate).getTime().should.equal(registered.getTime());
-                res.profile.should.include(courier.profile);
-                res.roles.should.eql(['courier']);
+                res.should.be.instanceof(Array);
+                res.should.have.length(1);
+                var user = res[0];
+                user.username.should.equal('akim');
+                // user.company.should.equal('test'); TODO: enable when companies will be string again
+                new Date(user.registrationDate).getTime().should.equal(registered.getTime());
+                user.profile.should.include(courier.profile);
+                user.roles.should.eql(['courier']);
                 return done();
             }
         });
@@ -59,11 +75,11 @@ describe('users', function () {
 
     it('should delete user', function (done) {
         var user = _.findWhere(fixtures.users, {username: 'delete'});
-        api().users.delete({ id: user._id }, {
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+        api({simple: false, resolveWithFullResponse: true}).users.delete({ id: user._id }, {
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
-                res.message.should.equal('user has been deleted');
+                res.statusCode.should.equal(204);
                 done();
             }
         });
@@ -73,11 +89,10 @@ describe('users', function () {
         var spy = sinon.spy(reqHandler);
 
         api({ requestHandler: spy }).users.get({ roles: 'courier' }, { 
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 spy.should.have.been.calledOnce;
-                // console.log(res);
                 expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users?roles=courier');
                 return done();
             }
@@ -87,16 +102,14 @@ describe('users', function () {
     it('should return online users only', function (done) {
         var spy = sinon.spy(reqHandler);
 
-        api({ requestHandler: spy }).users.findOnline({}, { 
-            headers: { Authorization: 'Bearer ' + conf.accessToken },
+        api({ requestHandler: spy }).users.get({ online: true }, { 
+            headers: { Authorization: 'Bearer ' + accessToken },
             callback: function (err, res) {
-                if (err) { 
-                    console.error(err.message);
-                    return done(err);
-                }
-                res.should.have.length(1);
+                if (err) {  return done(err); }
+                res.should.have.length(2);
+                res[0].username.should.equal('online');
                 spy.should.have.been.calledOnce;
-                expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users/findOnline');
+                expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users?online=true');
                 return done();
             }
         });

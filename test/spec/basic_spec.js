@@ -5,6 +5,19 @@ var should = require('chai').should(),
 
 describe('basic tests', function () {
 
+    var accessToken;
+
+    before(function (done) {
+        getToken('admin@test.com', 'admin')
+        .then(function (token) {
+            accessToken = token;
+            return done();
+        })
+        .catch(function (err) {
+            return done(err);
+        });
+    });
+
     it('should have resources', function () {
         var _api = api();
         _api.should.have.property('users');
@@ -19,13 +32,13 @@ describe('basic tests', function () {
     it('should return error when getting non valid user', function (done) {
         api()
             .users.getById({id: 'xxxxxxxxxxxxxxxxxxxxxxxx'}, { 
-                headers: { Authorization: 'Bearer ' + conf.accessToken },
+                headers: { Authorization: 'Bearer ' + accessToken },
                 callback: function (err, user) {
                     if (user) {
                         return done(new Error('unexpected success'));
                     }
-                    err.message.should.equal('User not found');
                     err.should.be.an.instanceof(e.ResourceNotFound);
+                    err.message.should.equal('Resource not found');
                     done();                    
                 }
             });
@@ -34,7 +47,7 @@ describe('basic tests', function () {
     it('should return courier', function (done) {
         api()
             .users.getById({id: 'this'}, { 
-                headers: { Authorization: 'Bearer ' + conf.accessToken },
+                headers: { Authorization: 'Bearer ' + accessToken },
                 callback: function (err, courier) {
                     // console.log(err, courier);
                     if (err) { return done(err); }

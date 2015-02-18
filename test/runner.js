@@ -11,9 +11,7 @@ var mocha = new Mocha({
 });
  
 // Files which need to be ignored
-var avoided = [
-    "node_modules"
-];
+var avoided = [ 'node_modules' ];
 
 require('./prepare')(function (err) {
     if (err) { throw err; }

@@ -1,6 +1,7 @@
 require('../common.js');
 var _          = require('underscore'),
     chai       = require('chai'),
+    expect     = chai.expect,
     Promise    = require('bluebird'),
     sinon      = require('sinon'),
     sinonChai  = require('sinon-chai'),
@@ -11,14 +12,15 @@ var should = chai.should();
 chai.use(sinonChai);
 
 describe('dispatching', function () {
+
+    var accessToken, positionId;
+
     before(function (done) {
-        Promise.using(mongo(), function (db) {
-            return Promise.all([
-                db.collection('positions').dropAsync().catch(function () {return false}),
-                db.collection('users').findOneAsync({ username: 'online' })
-            ]);
-        }).then(function (result) {
-            var courier = result[1];
+
+        getToken('admin@test.com', 'admin')
+        .then(function (token) {
+            accessToken = token;
+            var courier = _.findWhere(fixtures.users, {username: 'autodispatch'});
             var position = {
                 coords: {
                     latitude:48.4189901,
@@ -26,12 +28,12 @@ describe('dispatching', function () {
                     timestamp:1381878960618
                 }
             };
-            return postFixture('positions/' + courier._id, position, conf.accessToken);
-        }).then(function () {
-            done();
+            return postFixture('positions/' + courier._id, position, accessToken);
+        }).then(function (pos) {
+            positionId = pos._id;
+            return done();
         }).catch(function (err) {
-            console.log(err);
-            done(err);
+            return done(err);
         });
     });
 
@@ -39,25 +41,24 @@ describe('dispatching', function () {
         done();
     });
 
-    // it('should find best courier', function (done) {
-    //     api().dispatching.findAvailableCouriers(
-    //         {
-    //             pickupAddress: 'Parizska 23, Praha',
-    //             dropAddress: 'Konevova 14, Praha',
-    //             // onlineSince: '2015-01-07T15:45:00Z',
-    //             // courierId: '',
-    //             deliveryDate: (new Date()).toJSON()
-    //         }, {            
-    //             headers: { Authorization: 'Bearer ' + conf.accessToken },
-    //             callback: function (err, res) {
-    //                 if (err) { return done(err); }
-    //                 should.equal(res[0].courier.fullName, 'online Sheen Charlie');
-    //                 should.exist(res[0].pickupTime);
-    //                 should.exist(res[0].dropTime);
-    //                 return done();
-    //             }
-    //     });
-    // });
+    it('should find best courier', function (done) {
+        api().dispatching.findAvailableCouriers(
+            {
+                pickupAddress: 'Parizska 23, Praha',
+                dropAddress: 'Konevova 14, Praha',
+                // onlineSince: '2015-01-07T15:45:00Z',
+                deliveryDate: (new Date()).toJSON()
+            }, {            
+                headers: { Authorization: 'Bearer ' + accessToken },
+                callback: function (err, res) {
+                    if (err) { return done(err); }
+                    should.equal(res[0].courier.username, 'autodispatch');
+                    should.exist(res[0].pickupTime);
+                    should.exist(res[0].dropTime);
+                    return done();
+                }
+        });
+    });
 
     // it('should create route for best courier based on delivery', function (done) {
     //     var delivery = {
@@ -106,7 +107,7 @@ describe('dispatching', function () {
     //         {
     //             delivery: delivery
     //         }, {            
-    //             headers: { Authorization: 'Bearer ' + conf.accessToken },
+    //             headers: { Authorization: 'Bearer ' + accessToken },
     //             callback: function (err, res) {
     //                 if (err) { return done(err); }
     //                 console.log(res);
@@ -118,28 +119,4 @@ describe('dispatching', function () {
     //             }
     //     });
     // });
-
-
-    it('should create route for best courier', function (done) {
-
-        api().dispatching.autoAssign(
-            {
-                pickupAddress: 'Parizska 23, Praha',
-                dropAddress: 'Konevova 14, Praha',
-                // onlineSince: '2015-01-07T15:45:00Z',
-                // courierId: '',
-                deliveryDate: (new Date()).toJSON()
-            }, {            
-                headers: { Authorization: 'Bearer ' + conf.accessToken },
-                callback: function (err, res) {
-                    if (err) { return done(err); }
-                    console.log(res);
-                    should.exist(res.startDate);
-                    should.exist(res.endDate);
-                    should.exist(res.courier);
-                    should.equal(res.state, 'Assigned');
-                    return done();
-                }
-        });
-    });
 });

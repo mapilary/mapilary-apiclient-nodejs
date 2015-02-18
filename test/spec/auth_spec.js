@@ -42,7 +42,6 @@ describe('authentication', function() {
             user: [user.username, user.company].join('#'),
             pass: user.password
         };
-        console.log(auth);
         api().authentication.login(null, {
             auth: auth,
             callback: function (err, user) {
@@ -53,15 +52,14 @@ describe('authentication', function() {
     });
 
     it('should not authorize user on request level', function(done) {
-        var requestHandler = sinon.spy(reqHandler);
+        // var requestHandler = sinon.spy(reqHandler);
         // var api = apiAuth(client({ requestHandler: requestHandler }));
         // api.auth(accessToken);
         api().users.get({ id: 'this' }, {
             callback: function (err, user) {
                 if (err) {
-                    err.message.should.contain('Authorization via bearer token required');
-                    err.should.be.an.instanceof(e.Unauthorized);
-                    // err.message.be.an.instanceof(e.Unauthorized);
+                    err.should.be.an.instanceof(e.AccessDenied);
+                    err.message.should.contain('No user on request!');
                     // requestHandler.should.have.been.called;
                     // var call = requestHandler.getCall(0);
                     // console.log(call.args);
@@ -73,15 +71,16 @@ describe('authentication', function() {
     });
 
     it('should authorize user on request level', function(done) {
-        var requestHandler = sinon.spy(reqHandler);
-        api().users.get({ id: 'this' }, {
-            auth: { bearer: conf.accessToken },
-            callback: function (err, user) {
-                if (err) {
-                    return done(err);
+        getToken('courier#test', 'courier').then(function (token) {
+            // console.log('token', token);
+            api().users.getById({ id: 'this' }, {
+                auth: { bearer: token },
+                callback: function (err, user) {
+                    if (err) { return done(err); }
+                    user.username.should.equal('courier');
+                    return done();
                 }
-                return done();
-            }
+            });
         });
     });
 });
