@@ -42,6 +42,21 @@
     },
     "roles": ["courier"]
 }, {
+    "username": "courier2",
+    "password": "courier",
+    "status": "active",
+    "registrationDate": "2015-01-01T08:00:00Z",
+    "profile": {
+      "titleBefore": "",
+      "name": "Johnny",
+      "surname": "Rotten",
+      "titleAfter": "",
+      "age": 38,
+      "phoneNr": "+1 (921) 123-320",
+      "email": "courier2@test.com"
+    },
+    "roles": ["courier"]
+}, {
     "username": "delete",
     "password": "delete",
     "status": "active",

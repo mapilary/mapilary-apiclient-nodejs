@@ -6,8 +6,7 @@ var _          = require('underscore'),
     e          = require('../../lib/errorTypes'),
     sinon      = require('sinon'),
     sinonChai  = require('sinon-chai'),
-    reqHandler = require('../../lib/reqHandler'),
-    conf       = require('../config.test.json');
+    reqHandler = require('../../lib/reqHandler');
 
 chai.should();
 chai.use(sinonChai);
@@ -24,6 +23,18 @@ describe('deliveries', function () {
         })
         .catch(function (err) {
             return done(err);
+        });
+    });
+
+    it('should get delivery by id', function (done) {
+        var delivery = _.findWhere(fixtures.deliveries, {trackingNr: 'BA1000'});
+        api().deliveries.getById(delivery._id, {
+            auth: { bearer: accessToken },
+            callback: function (err, res) {
+                if (err) { return done(err); }
+                res.trackingNr.should.equal('BA1000');
+                done();
+            }
         });
     });
 
@@ -73,7 +84,7 @@ describe('deliveries', function () {
             ]
         };
         api().deliveries.create([delivery], {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 // console.log(res);
@@ -93,7 +104,7 @@ describe('deliveries', function () {
                     note: 'new note'
                 }
             }, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res.note.should.equal('new note');
@@ -112,7 +123,7 @@ describe('deliveries', function () {
                     note: 'new note'
                 }
             }, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res.should.have.keys('_id', 'addresses', 'company', 'courierRating', 'deviceTokens', 'trackingNr', 'note', 'priority', 'state');
@@ -130,7 +141,7 @@ describe('deliveries', function () {
                     note: 'new note'
                 }
             }, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 // console.log(err, res.statusCode);
                 err.should.be.an.instanceof(e.InvalidRequestError);
@@ -142,7 +153,7 @@ describe('deliveries', function () {
 
     it('should return error when deleting non existing delivery', function (done) {
         api().deliveries.delete({id: 'AABBCCDDEEFFAABBCCDDEEFF'}, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) {
                     // console.log(res);
@@ -158,7 +169,7 @@ describe('deliveries', function () {
     it('should delete delivery', function (done) {
         var delivery = _.findWhere(fixtures.deliveries, {trackingNr: 'BA1001'});
         api({simple: false, resolveWithFullResponse: true }).deliveries.delete({id: delivery._id}, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res.statusCode.should.equal(204);

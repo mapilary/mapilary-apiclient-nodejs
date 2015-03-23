@@ -1,7 +1,7 @@
 {
   "name": "mapilary-apiclient-nodejs",
-  "version": "2.0.1",
-  "description": "",
+  "version": "2.0.2",
+  "description": "Mapilary API Client for nodejs",
   "scripts": {
     "test": "node test/runner.js test/spec/"
   },

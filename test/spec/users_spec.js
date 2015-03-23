@@ -5,7 +5,7 @@ var _          = require('underscore'),
     sinon      = require('sinon'),
     sinonChai  = require('sinon-chai'),
     reqHandler = require('../../lib/reqHandler')(),
-    conf       = require('../config.test.json');
+    conf       = require('../config.json');
 
 chai.should();
 chai.use(sinonChai);
@@ -28,7 +28,7 @@ describe('users', function () {
     it('should get user', function (done) {
         var user = _.findWhere(fixtures.users, {username: 'online'});
         api().users.getById(user._id, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res._id.toString().should.equal(user._id.toString());
@@ -57,7 +57,7 @@ describe('users', function () {
         };
 
         api().users.create([courier], { 
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res.should.be.instanceof(Array);
@@ -76,7 +76,7 @@ describe('users', function () {
     it('should delete user', function (done) {
         var user = _.findWhere(fixtures.users, {username: 'delete'});
         api({simple: false, resolveWithFullResponse: true}).users.delete({ id: user._id }, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res.statusCode.should.equal(204);
@@ -89,7 +89,7 @@ describe('users', function () {
         var spy = sinon.spy(reqHandler);
 
         api({ requestHandler: spy }).users.get({ roles: 'courier' }, { 
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 spy.should.have.been.calledOnce;
@@ -103,7 +103,7 @@ describe('users', function () {
         var spy = sinon.spy(reqHandler);
 
         api({ requestHandler: spy }).users.get({ online: true }, { 
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) {  return done(err); }
                 res.should.have.length(2);
@@ -115,4 +115,32 @@ describe('users', function () {
         });
     });
 
+    it('should set user offline', function (done) {
+        var reqHandler = require('../../lib/reqHandlerPromised')();
+        var user = _.findWhere(fixtures.users, {username: 'online'});
+        var spy = sinon.spy(reqHandler);
+
+        getToken(conf.rootUser, conf.rootPassword)
+        .then(function (accessToken) {
+            return api({ requestHandler: spy }).users.setOnline(
+                { id: user._id, online: false },
+                { auth: { bearer: accessToken } }
+            );
+        })
+        .then(function () {
+            return api({ requestHandler: reqHandler }).users.getById(
+                user._id, 
+                { auth: { bearer: accessToken } }
+            );
+        })
+        .then(function (user) {
+            spy.should.have.been.calledOnce;
+            expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users/' + user._id + '/online');
+            user.online.should.equal(false);
+            return done();            
+        })
+        .catch(function (err) {
+            return done(err);
+        });
+    });
 });

@@ -5,8 +5,7 @@ var _          = require('underscore'),
     Promise    = require('bluebird'),
     sinon      = require('sinon'),
     sinonChai  = require('sinon-chai'),
-    reqHandler = require('../../lib/reqHandler'),
-    conf       = require('../config.test.json');
+    reqHandler = require('../../lib/reqHandler');
 
 var should = chai.should();
 chai.use(sinonChai);
@@ -49,7 +48,7 @@ describe('dispatching', function () {
                 // onlineSince: '2015-01-07T15:45:00Z',
                 deliveryDate: (new Date()).toJSON()
             }, {            
-                headers: { Authorization: 'Bearer ' + accessToken },
+                auth: { bearer: accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
                     should.equal(res[0].courier.username, 'autodispatch');

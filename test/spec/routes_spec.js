@@ -6,7 +6,6 @@ var _          = require('underscore'),
     sinon      = require('sinon'),
     sinonChai  = require('sinon-chai'),
     reqHandler = require('../../lib/reqHandler')(),
-    conf       = require('../config.test.json'),
     e          = require('../../lib/errorTypes');
 
 var should = chai.should();
@@ -29,8 +28,8 @@ describe('routes', function () {
     
     it('should find route by id', function (done) {
         var route = _.findWhere(fixtures.routes, {note: 'update'});
-        api().routes.getById({id: route._id}, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+        api().routes.getById(route._id, {
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res._id.should.equal(route._id);
@@ -42,7 +41,7 @@ describe('routes', function () {
     it('should not find route by id', function (done) {
         var route = _.findWhere(fixtures.routes, {note: 'update'});
         api().routes.getById({id: 'AABBCCDDEEFFAABBCCDDEEFF'}, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 err.should.be.an.instanceof(e.ResourceNotFound);
                 err.message.should.equal('Resource not found');
@@ -61,7 +60,7 @@ describe('routes', function () {
             "state": "Created"
         };
         api().routes.create([route], {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res.should.be.instanceof(Array);
@@ -75,7 +74,7 @@ describe('routes', function () {
     it('should delete route', function (done) {
         var route = _.findWhere(fixtures.routes, {note: 'delete'});
         api({simple: true, resolveWithFullResponse: true}).routes.delete({id: route._id}, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res.statusCode.should.equal(204);
@@ -95,7 +94,7 @@ describe('routes', function () {
                     note: 'new note'
                 }
             }, {
-            headers: { Authorization: 'Bearer ' + accessToken },
+            auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
                 //console.log(res);
@@ -108,7 +107,7 @@ describe('routes', function () {
     it('should return all routes', function (done) {
         api().routes.get({},
             {
-                headers: { Authorization: 'Bearer ' + accessToken },
+                auth: { bearer: accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
                     res.should.have.length(5);
@@ -125,7 +124,7 @@ describe('routes', function () {
                 startDate: '{gte}2015-01-07T00:00:00Z',
                 endDate: '{lte}2015-01-08T00:00:00Z'
             }, {
-                headers: { Authorization: 'Bearer ' + accessToken },
+                auth: { bearer: accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
                     spy.should.have.been.calledOnce;

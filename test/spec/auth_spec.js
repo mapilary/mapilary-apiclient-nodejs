@@ -4,8 +4,7 @@ var _          = require('underscore'),
     sinon      = require('sinon'),
     sinonChai  = require('sinon-chai'),
     e          = require('../../lib/errorTypes'),
-    reqHandler = require('../../lib/reqHandler'),
-    conf       = require('../config.test.json');
+    reqHandler = require('../../lib/reqHandler');
 
 chai.should();
 chai.use(sinonChai);
@@ -44,8 +43,12 @@ describe('authentication', function() {
         };
         api().authentication.login(null, {
             auth: auth,
-            callback: function (err, user) {
+            callback: function (err, token) {
                 if (err) { return done(err); }
+                token.access_token.should.be.defined;
+                token.token_type.should.equal('Bearer');
+                token.expires_in.should.be.defined;
+                token.expires_in.should.be.Number;
                 return done();
             }
         });

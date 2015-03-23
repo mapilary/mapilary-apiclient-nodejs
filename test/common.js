@@ -1,4 +1,4 @@
-var conf        = require('./config.test.json');
+var conf        = Object.freeze(require('./config.json'));
     Promise     = require('bluebird'),
     mongodb     = require('mongodb'),
     request     = Promise.promisifyAll(require('request')),
@@ -9,6 +9,8 @@ Promise.promisifyAll(Collection.prototype);
 Promise.promisifyAll(MongoClient);
 
 api = function (options) {
+    options = options || {};
+    options.promise = false;
     return require('../lib/client')(options);
 };
 

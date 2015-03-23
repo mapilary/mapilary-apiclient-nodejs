@@ -1,6 +1,6 @@
 require('./common');
 var _           = require('underscore'),
-    conf        = require('./config.test.json'),
+    conf        = Object.freeze(require('./config.json')),
     Promise     = require('bluebird'),
     MongoDB     = Promise.promisifyAll(require('mongodb')),
     MongoClient = MongoDB.MongoClient,

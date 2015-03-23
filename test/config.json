@@ -11,10 +11,9 @@
             "pass": ""
         },        
         "redis": {
-            "scope": "test",
             "port": 6379,
             "host": "localhost",
-            "options": {}
+            "scope": "test:u"
         }
     }	
 }

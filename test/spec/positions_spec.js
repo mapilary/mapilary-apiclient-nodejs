@@ -4,8 +4,7 @@ var _          = require('underscore'),
     expect     = chai.expect,
     sinon      = require('sinon'),
     expect     = chai.expect,
-    reqHandler = require('../../lib/reqHandler')(),
-    conf       = require('../config.test.json');
+    reqHandler = require('../../lib/reqHandler')();
 
 chai.should();
 
@@ -42,7 +41,7 @@ describe('positions', function () {
                     coords: coords
                 }
             }, { 
-                headers: { Authorization: 'Bearer ' + accessToken },
+                auth: { bearer: accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
                     // expect(res).to.be.undefined;
@@ -57,7 +56,7 @@ describe('positions', function () {
 
         api({ requestHandler: spy })
             .positions.get({ courier: courier._id }, { 
-                headers: { Authorization: 'Bearer ' + accessToken },
+                auth: { bearer: accessToken },
                 callback: function (err, positions) {
                     if (err) { return done(err); }
                     expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/positions?courier=' + courier._id);

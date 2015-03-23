@@ -1,7 +1,6 @@
 require('../common.js');
 var should = require('chai').should(),
-    e      = require('../../lib/errorTypes'),
-    conf   = require('../config.test.json');
+    e      = require('../../lib/errorTypes');
 
 describe('basic tests', function () {
 
@@ -31,8 +30,8 @@ describe('basic tests', function () {
 
     it('should return error when getting non valid user', function (done) {
         api()
-            .users.getById({id: 'xxxxxxxxxxxxxxxxxxxxxxxx'}, { 
-                headers: { Authorization: 'Bearer ' + accessToken },
+            .users.getById({id: 'xxxxxxxxxxxxxxxxxxxxxxxx'}, {
+                auth: { bearer: accessToken },
                 callback: function (err, user) {
                     if (user) {
                         return done(new Error('unexpected success'));
@@ -47,7 +46,7 @@ describe('basic tests', function () {
     it('should return courier', function (done) {
         api()
             .users.getById({id: 'this'}, { 
-                headers: { Authorization: 'Bearer ' + accessToken },
+                auth: { bearer: accessToken },
                 callback: function (err, courier) {
                     // console.log(err, courier);
                     if (err) { return done(err); }
