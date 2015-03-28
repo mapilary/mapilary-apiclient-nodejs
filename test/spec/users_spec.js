@@ -15,7 +15,8 @@ describe('users', function () {
     var accessToken;
 
     before(function (done) {
-        getToken('admin@test.com', 'admin')
+        var user = _.findWhere(fixtures.users, {username: 'admin'});
+        getToken(user.profile.email, user.password)
         .then(function (token) {
             accessToken = token;
             return done();
@@ -51,7 +52,7 @@ describe('users', function () {
               "titleAfter": "",
               "age": 24,
               "phoneNr": "+1 (901) 429-2670",
-              "email": "alvaradokim@test.com"
+              "email": buildEmail("alvaradokim", fixtures.company)
             },
             "roles": ["courier"]
         };

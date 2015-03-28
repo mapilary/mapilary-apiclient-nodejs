@@ -3,13 +3,6 @@
 	"rootUser": "root@mapilary.com",
     "rootPassword": "123",
     "db": {
-        "mongo": {
-            "host": "localhost",
-            "db": "mapilary-test",
-            "port": 27017,
-            "user": "",
-            "pass": ""
-        },        
         "redis": {
             "port": 6379,
             "host": "localhost",

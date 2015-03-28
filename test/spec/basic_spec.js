@@ -1,5 +1,6 @@
 require('../common.js');
-var should = require('chai').should(),
+var _      = require('underscore'),
+    should = require('chai').should(),
     e      = require('../../lib/errorTypes');
 
 describe('basic tests', function () {
@@ -7,7 +8,8 @@ describe('basic tests', function () {
     var accessToken;
 
     before(function (done) {
-        getToken('admin@test.com', 'admin')
+        var user = _.findWhere(fixtures.users, {username: 'admin'});
+        getToken(user.profile.email, user.password)
         .then(function (token) {
             accessToken = token;
             return done();

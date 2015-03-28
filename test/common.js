@@ -57,3 +57,7 @@ postFixture = function (path, fixture, accessToken) {
         return body;
     });
 };
+
+buildEmail = function (user, company) {
+    return [user, '@', company, '.com'].join('');
+};

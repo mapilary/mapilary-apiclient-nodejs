@@ -74,7 +74,8 @@ describe('authentication', function() {
     });
 
     it('should authorize user on request level', function(done) {
-        getToken('courier#test', 'courier').then(function (token) {
+        var user = _.findWhere(fixtures.users, {username: 'courier'});
+        getToken(user.username + '#' + user.company, user.password).then(function (token) {
             // console.log('token', token);
             api().users.getById({ id: 'this' }, {
                 auth: { bearer: token },

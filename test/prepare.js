@@ -2,11 +2,11 @@ require('./common');
 var _           = require('underscore'),
     conf        = Object.freeze(require('./config.json')),
     Promise     = require('bluebird'),
-    MongoDB     = Promise.promisifyAll(require('mongodb')),
-    MongoClient = MongoDB.MongoClient,
     NRP         = require('node-redis-pubsub');
 
-fixtures = {};
+fixtures = {
+    company: 'test' + new Date().getTime()
+};
 
 function handleCompany (collection, company) {
     return _.map(collection, function (doc) {
@@ -15,91 +15,76 @@ function handleCompany (collection, company) {
     });
 }
 
+function buildUsers (collection, company) {
+    return _.map(collection, function (doc) {
+        doc.company = company;
+        doc.profile.email = buildEmail(doc.username, company);
+        return doc;
+    });    
+}
+
 module.exports = function (callback) {
 
-    var mongo = conf.db.mongo,
-        redis = conf.db.redis;
+    var token, companyName = fixtures.company;
 
-    var credentials = mongo.user ? [mongo.user, ':', mongo.pass, '@'].join('') : '';
-    var url = ['mongodb://', credentials, mongo.host, ':', mongo.port, '/', mongo.db].join('');
+    var nrp = new NRP(conf.db.redis, { scope: conf.db.redis.scope });
 
-    var nrp = new NRP(redis, { scope: redis.scope });
-
-    MongoClient.connectAsync(url).then(function (db) {
-        console.log('Connected to mongo');
-        var dropCollections = [
-            'companies',
-            'routes',
-            'deliveries',
-            'positions'
-        ];
-
-        return Promise.all([
-            // drop all collections except user collection
-            Promise.each(dropCollections, function (collection) {
-                return db.collection(collection).drop();
-            }),
-            // remove all non system users
-            db.collection('users').removeAsync({
-                status: { $ne: 'hidden' },
-                username: { $nin: ['root', 'public'] }
-            }, { multi: true })
-        ]).then(function () {
-            var token;
-            // get apikey for root user
-            return getToken(conf.rootUser, conf.rootPassword);
-        }).then(function (_token) {
-            token = _token;
-            //create company
-            return new Promise(function (resolve, reject) {
-                // wait for activation token
-                nrp.on('company:register', function () {
-                    return resolve();
-                });
-
-                postFixture('companies/register', {
-                    name: 'test',
-                    admin: {
-                        username: 'testroot',
-                        profile: { email: 'testroot@test.com' }
-                    }
-                }, token);
+    // get apikey for root user
+    getToken(conf.rootUser, conf.rootPassword)
+    .then(function (_token) {
+        token = _token;
+        //create company
+        return new Promise(function (resolve, reject) {
+            // wait for activation token
+            nrp.on('company:register', function () {
+                return resolve();
             });
-        }).then(function (company) {
-            var companyName = 'test';//company[0].name;
-            var usersFixture      = handleCompany(require('./fixtures/users.json'), companyName),
-                deliveriesFixture = handleCompany(require('./fixtures/deliveries.json'), companyName),
-                routesFixture     = _.map(
-                    require('./fixtures/routes.json'),
-                    function (route) {
-                        route.company   = companyName;
-                        route.startDate = new Date(route.startDate);
-                        route.endDate   = new Date(route.endDate);
-                        return route;
-                    }
-                );
 
-            return Promise.props({
-                deliveries: postFixture('deliveries', deliveriesFixture, token),
-                users: postFixture('users', usersFixture, token)
-                    .then(function (users) {
-                        return _.map(users, function (user, idx) {
-                            user.company  = 'test';
-                            user.password = usersFixture[idx].password;    
-                            return user;
-                        });
-                    }),
-                routes: postFixture('routes', routesFixture, token),
-            });
-        }).then(function (results) {
-            fixtures.users      = results.users;
-            fixtures.routes     = results.routes;
-            fixtures.deliveries = results.deliveries;
-            return callback();
-        }).catch(function (err) {
-            return callback(err);
-        }).finally(function () {
-            db.close();
+            postFixture('companies/register', {
+                name: companyName,
+                admin: {
+                    username: 'admina',
+                    profile: { email: buildEmail('admina', companyName) }
+                }
+            }, token);
         });
+    })
+    .then(function () {
+        var fixture = buildUsers(require('./fixtures/users.json'), companyName);
+        return postFixture('users', fixture, token)
+        .then(function (users) {
+            fixtures.users = _.map(users, function (user, idx) {
+                // user.company  = 'test';
+                user.password = fixture[idx].password;    
+                return user;
+            });
+        });
+    })
+    .then(function () {
+        var fixture = handleCompany(require('./fixtures/deliveries.json'), companyName);
+        return postFixture('deliveries', fixture, token)
+        .then(function (deliveries) {
+            fixtures.deliveries = deliveries;
+        });
+    })
+    .then(function () {
+        var fixture = _.map(require('./fixtures/routes.json'),
+            function (route) {
+                route.company   = companyName;
+                route.startDate = new Date(route.startDate);
+                route.endDate   = new Date(route.endDate);
+                return route;
+            }
+        );
+        return postFixture('routes', fixture, token)
+        .then(function (routes) {
+            fixtures.routes = routes;
+        });
+    })
+    .then(function () {
+        return callback();
+    })
+    .catch(function (err) {
+        return callback(err);
     });
 };

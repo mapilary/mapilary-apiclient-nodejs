@@ -15,8 +15,8 @@ describe('dispatching', function () {
     var accessToken, positionId;
 
     before(function (done) {
-
-        getToken('admin@test.com', 'admin')
+        var user = _.findWhere(fixtures.users, {username: 'admin'});
+        getToken(user.profile.email, user.password)
         .then(function (token) {
             accessToken = token;
             var courier = _.findWhere(fixtures.users, {username: 'autodispatch'});

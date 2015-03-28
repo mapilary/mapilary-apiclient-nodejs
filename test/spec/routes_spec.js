@@ -16,7 +16,8 @@ describe('routes', function () {
     var accessToken;
 
     before(function (done) {
-        getToken('admin@test.com', 'admin')
+        var user = _.findWhere(fixtures.users, {username: 'admin'});
+        getToken(user.profile.email, user.password)
         .then(function (token) {
             accessToken = token;
             return done();
@@ -130,7 +131,6 @@ describe('routes', function () {
                     spy.should.have.been.calledOnce;
                     expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/routes?startDate=%7Bgte%7D2015-01-07T00%3A00%3A00Z&endDate=%7Blte%7D2015-01-08T00%3A00%3A00Z&embed=deliveries');
                     res.should.have.length(2);
-                    // console.log(res);
                     done();                 
                 }
             });
