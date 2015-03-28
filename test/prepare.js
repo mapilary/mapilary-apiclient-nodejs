@@ -23,7 +23,7 @@ module.exports = function (callback) {
     var credentials = mongo.user ? [mongo.user, ':', mongo.pass, '@'].join('') : '';
     var url = ['mongodb://', credentials, mongo.host, ':', mongo.port, '/', mongo.db].join('');
 
-    // var nrp = new NRP(redis, { scope: redis.scope });
+    var nrp = new NRP(redis, { scope: redis.scope });
 
     MongoClient.connectAsync(url).then(function (db) {
         console.log('Connected to mongo');
@@ -31,11 +31,7 @@ module.exports = function (callback) {
             'companies',
             'routes',
             'deliveries',
-            'positions',
-            'users_history',
-            'routes_history',
-            'deliveries_history',
-            'positions_history'
+            'positions'
         ];
 
         return Promise.all([
@@ -55,37 +51,28 @@ module.exports = function (callback) {
         }).then(function (_token) {
             token = _token;
             //create company
-            return postFixture('companies/register', {
-                name: 'test',
-                admin: {
-                    username: 'testroot',
-                    profile: { email: 'testroot@test.com' }
-                }
-            }, token);
-        }).then(function () {
-            //activate company
-            // TODO: switch to nrp
-            // return new Promise(function (resolve, reject) {
-            //     nrp.on('company:register', function () {
-            //         console.log('nrp', arguments);
-            //         return resolve();
-            //     });                
-            // });
-            return db.collection('companies')
-                .updateAsync({ name: 'test' }, { $set: { status: 'active' } })
-                .then(function () {
-                    return db.collection('companies')
-                        .find({ name: 'test' })
-                        .toArrayAsync();
+            return new Promise(function (resolve, reject) {
+                // wait for activation token
+                nrp.on('company:register', function () {
+                    return resolve();
                 });
+
+                postFixture('companies/register', {
+                    name: 'test',
+                    admin: {
+                        username: 'testroot',
+                        profile: { email: 'testroot@test.com' }
+                    }
+                }, token);
+            });
         }).then(function (company) {
-            var companyId = company[0]._id;
-            var usersFixture      = handleCompany(require('./fixtures/users.json'), companyId),
-                deliveriesFixture = handleCompany(require('./fixtures/deliveries.json'), companyId),
+            var companyName = 'test';//company[0].name;
+            var usersFixture      = handleCompany(require('./fixtures/users.json'), companyName),
+                deliveriesFixture = handleCompany(require('./fixtures/deliveries.json'), companyName),
                 routesFixture     = _.map(
                     require('./fixtures/routes.json'),
                     function (route) {
-                        route.company   = companyId;
+                        route.company   = companyName;
                         route.startDate = new Date(route.startDate);
                         route.endDate   = new Date(route.endDate);
                         return route;
@@ -102,12 +89,6 @@ module.exports = function (callback) {
                             return user;
                         });
                     }),
-                    // .then(function (users) {
-                    //     return db.collection('users').updateAsync({ username: 'online'}, { $set: {'stats.online': true}})
-                    //         .then(function () {
-                    //             return users;                                
-                    //         });
-                    // }),
                 routes: postFixture('routes', routesFixture, token),
             });
         }).then(function (results) {

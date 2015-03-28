@@ -27,8 +27,7 @@ describe('companies', function () {
             }
         };
 
-        nrp.on('company:' + company.name + ':register', function (res) {
-            // console.log(res);
+        nrp.on('company:register', function (res) {
             res.data.company.name.should.equal(company.name);
             res.data.company.status.should.equal('created');
             return done();
