@@ -28,10 +28,12 @@ describe('positions', function () {
 
         var courier = _.findWhere(fixtures.users, {username: 'online'});
 
+        //1410932792207, 17.54, 16.6, 100
         var coords = {
-            latitude: 49,
-            longitude: 17,
-            timestamp: new Date().getTime()
+            accuracy: 100,
+            latitude: 17.54,
+            longitude: 16.6,
+            timestamp: 1410932792207
         };
 
         api()
@@ -51,7 +53,7 @@ describe('positions', function () {
             });
     });
 
-    it('should retrieve couriers position', function (done) {
+    it('should retrieve courier positions', function (done) {
         var spy = sinon.spy(reqHandler);
         var courier = _.findWhere(fixtures.users, {username: 'online'});
 
@@ -63,7 +65,11 @@ describe('positions', function () {
                     expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/positions?courier=' + courier._id);
                     positions.should.be.a('array');
                     positions.should.have.length(1);
-                    done();
+                    positions[0].company.should.equal(courier.company);
+                    positions[0].coords.accuracy.should.equal(100);
+                    positions[0].coords.latitude.should.equal(17.54);
+                    positions[0].coords.longitude.should.equal(16.6);
+                    return done();
                 }
             });
     });
