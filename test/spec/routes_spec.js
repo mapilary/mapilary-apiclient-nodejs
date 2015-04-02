@@ -111,7 +111,7 @@ describe('routes', function () {
                 auth: { bearer: accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
-                    res.should.have.length(5);
+                    res.should.have.length(6);
                     done();                 
                 }
             });

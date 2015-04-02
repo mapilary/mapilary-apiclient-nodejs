@@ -59,63 +59,64 @@ describe('dispatching', function () {
         });
     });
 
-    // it('should create route for best courier based on delivery', function (done) {
-    //     var delivery = {
-    //         "trackingNr": "BA1000",
-    //         "startDate": "2015-02-05T19:00:00.000Z",
-    //         "company": "test",
-    //         "priority": 1,
-    //         "note": "pls call me 30 mins in advance",
-    //         "addresses": [
-    //           {
-    //             "type": "drop",
-    //             "consignee": "John Smith",
-    //             "phoneNr": "00421903475680",
-    //             "email": "john@john.john",
-    //             "city": "Praha",
-    //             "street": "Konevova",
-    //             "housenumber": 14,
-    //             "countryCode": "CZ",
-    //             "validFrom": "2014-09-25T14:00:45.702Z",
-    //             "validTo": "2014-09-25T16:00:45.708Z",
-    //             "coords": {
-    //               "latitude": 48.147183,
-    //               "longitude": 17.100051
-    //             }
-    //           },
-    //           {
-    //             "type": "pickup",
-    //             "consignee": "Peter Smith",
-    //             "phoneNr": "00421915694707",
-    //             "email": "",
-    //             "city": "Bratislava",
-    //             "street": "Kazanska",
-    //             "housenumber": 3,
-    //             "countryCode": "SK",
-    //             "validFrom": "2014-09-25T06:00:04.168Z",
-    //             "validTo": "2014-09-25T07:00:04.177Z",
-    //             "coords": {
-    //               "latitude": 48.131589,
-    //               "longitude": 17.198913
-    //             }
-    //           }
-    //         ]
-    //       };
+    it('should create route for best courier based on delivery', function (done) {
+        var delivery = {
+            "trackingNr": "BA1000",
+            "startDate": "2015-02-05T19:00:00.000Z",
+            "company": "test",
+            "priority": 1,
+            "note": "pls call me 30 mins in advance",
+            "addresses": [
+              {
+                "type": "drop",
+                "consignee": "John Smith",
+                "phoneNr": "00421903475680",
+                "email": "john@john.john",
+                "text": "Praha, Konevova 14, CZ",
+                // "city": "Praha",
+                // "street": "Konevova",
+                // "housenumber": 14,
+                // "countryCode": "CZ",
+                "validFrom": "2014-09-25T14:00:45.702Z",
+                "validTo": "2014-09-25T16:00:45.708Z",
+                "coords": {
+                  "latitude": 48.147183,
+                  "longitude": 17.100051
+                }
+              },
+              {
+                "type": "pickup",
+                "consignee": "Peter Smith",
+                "phoneNr": "00421915694707",
+                "email": "",
+                "text": "Bratislava, Kazanska 3, SK",
+                // "city": "Bratislava",
+                // "street": "Kazanska",
+                // "housenumber": 3,
+                // "countryCode": "SK",
+                "validFrom": "2014-09-25T06:00:04.168Z",
+                "validTo": "2014-09-25T07:00:04.177Z",
+                "coords": {
+                  "latitude": 48.131589,
+                  "longitude": 17.198913
+                }
+              }
+            ]
+          };
 
-    //     api().dispatching.autoAssignDelivery(
-    //         {
-    //             delivery: delivery
-    //         }, {            
-    //             headers: { Authorization: 'Bearer ' + accessToken },
-    //             callback: function (err, res) {
-    //                 if (err) { return done(err); }
-    //                 console.log(res);
-    //                 should.exist(res.startDate);
-    //                 should.exist(res.endDate);
-    //                 should.exist(res.courier);
-    //                 should.equal(res.state, 'Assigned');
-    //                 return done();
-    //             }
-    //     });
-    // });
+        api().dispatching.autoAssign(
+            {
+                delivery: delivery
+            }, {            
+                headers: { Authorization: 'Bearer ' + accessToken },
+                callback: function (err, res) {
+                    if (err) { return done(err); }
+                    should.exist(res.startDate);
+                    should.exist(res.endDate);
+                    should.exist(res.courier);
+                    should.equal(res.state, 'Assigned');
+                    return done();
+                }
+        });
+    });
 });
