@@ -73,4 +73,32 @@ describe('positions', function () {
                 }
             });
     });
+
+    it('should retrieve last positions of all couriers', function (done) {
+        var spy = sinon.spy(reqHandler);
+        var courier = _.findWhere(fixtures.users, {username: 'online'});
+
+        api({ requestHandler: spy })
+            .positions.getLastPositions({}, { 
+                auth: { bearer: accessToken },
+                callback: function (err, positions) {
+                    if (err) { return done(err); }
+                    expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/positions/lastPositions');
+                    positions.should.be.a('array');
+                    positions.should.have.length(2);
+                    positions[0].company.should.equal(courier.company);
+                    positions[0].coords.accuracy.should.equal(100);
+                    positions[0].coords.latitude.should.equal(17.54);
+                    positions[0].coords.longitude.should.equal(16.6);
+
+                    positions[1].company.should.equal(courier.company);
+                    // positions[1].coords.accuracy.should.equal(100);
+                    positions[1].coords.latitude.should.equal(48.4189901);
+                    positions[1].coords.longitude.should.equal(17.0212386);
+
+                    return done();
+                }
+            });
+    });
+
 });
