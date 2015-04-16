@@ -36,7 +36,7 @@ describe('users', function () {
                 done();
             }
         });
-    }); 
+    });
 
     it('should create new courier', function (done) {
         var registered = new Date();
@@ -57,7 +57,7 @@ describe('users', function () {
             "roles": ["courier"]
         };
 
-        api().users.create([courier], { 
+        api().users.create([courier], {
             auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
@@ -84,12 +84,12 @@ describe('users', function () {
                 done();
             }
         });
-    });    
+    });
 
     it('should only return users with role courier', function (done) {
         var spy = sinon.spy(reqHandler);
 
-        api({ requestHandler: spy }).users.get({ roles: 'courier' }, { 
+        api({ requestHandler: spy }).users.get({ roles: 'courier' }, {
             auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
@@ -103,7 +103,7 @@ describe('users', function () {
     it('should return online users only', function (done) {
         var spy = sinon.spy(reqHandler);
 
-        api({ requestHandler: spy }).users.get({ online: true }, { 
+        api({ requestHandler: spy }).users.get({ online: true }, {
             auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) {  return done(err); }
@@ -124,13 +124,13 @@ describe('users', function () {
         getToken(conf.rootUser, conf.rootPassword)
         .then(function (accessToken) {
             return api({ requestHandler: spy }).users.setOnline(
-                { id: user._id, online: false },
+                { id: user._id, props: { online: false } },
                 { auth: { bearer: accessToken } }
             );
         })
         .then(function () {
             return api({ requestHandler: reqHandler }).users.getById(
-                user._id, 
+                user._id,
                 { auth: { bearer: accessToken } }
             );
         })
@@ -138,7 +138,36 @@ describe('users', function () {
             spy.should.have.been.calledOnce;
             expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users/' + user._id + '/online');
             user.online.should.equal(false);
-            return done();            
+            return done();
+        })
+        .catch(function (err) {
+            return done(err);
+        });
+    });
+
+    it('should set user online', function (done) {
+        var reqHandler = require('../../lib/reqHandlerPromised')();
+        var user = _.findWhere(fixtures.users, {username: 'online'});
+        var spy = sinon.spy(reqHandler);
+
+        getToken(conf.rootUser, conf.rootPassword)
+        .then(function (accessToken) {
+            return api({ requestHandler: spy }).users.setOnline(
+                { id: user._id, props: { online: true } },
+                { auth: { bearer: accessToken } }
+            );
+        })
+        .then(function () {
+            return api({ requestHandler: reqHandler }).users.getById(
+                user._id,
+                { auth: { bearer: accessToken } }
+            );
+        })
+        .then(function (user) {
+            spy.should.have.been.calledOnce;
+            expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users/' + user._id + '/online');
+            user.online.should.equal(true);
+            return done();
         })
         .catch(function (err) {
             return done(err);
