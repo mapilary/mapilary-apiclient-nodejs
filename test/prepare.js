@@ -20,7 +20,7 @@ function buildUsers (collection, company) {
         doc.company = company;
         doc.profile.email = buildEmail(doc.username, company);
         return doc;
-    });    
+    });
 }
 
 module.exports = function (callback) {
@@ -55,7 +55,7 @@ module.exports = function (callback) {
         .then(function (users) {
             fixtures.users = _.map(users, function (user, idx) {
                 // user.company  = 'test';
-                user.password = fixture[idx].password;    
+                user.password = fixture[idx].password;
                 return user;
             });
         });

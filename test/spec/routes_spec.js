@@ -26,7 +26,7 @@ describe('routes', function () {
             return done(err);
         });
     });
-    
+
     it('should find route by id', function (done) {
         var route = _.findWhere(fixtures.routes, {note: 'update'});
         api().routes.getById(route._id, {
@@ -112,7 +112,7 @@ describe('routes', function () {
                 callback: function (err, res) {
                     if (err) { return done(err); }
                     res.should.have.length(6);
-                    done();                 
+                    done();
                 }
             });
     });
@@ -131,7 +131,7 @@ describe('routes', function () {
                     spy.should.have.been.calledOnce;
                     expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/routes?startDate=%7Bgte%7D2015-01-07T00%3A00%3A00Z&endDate=%7Blte%7D2015-01-08T00%3A00%3A00Z&embed=deliveries');
                     res.should.have.length(2);
-                    done();                 
+                    done();
                 }
             });
     });

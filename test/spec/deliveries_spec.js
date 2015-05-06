@@ -97,6 +97,55 @@ describe('deliveries', function () {
         });
     });
 
+    it('should get delivery by trackingNr', function (done) {
+        var reqHandler = require('../../lib/reqHandlerPromised')();
+        var spy = sinon.spy(reqHandler);
+        api({ requestHandler: spy }).deliveries.get({trackingNr: 'BA1000'}, {
+            auth: { bearer: accessToken }
+        })
+        .then(function (res) {
+            spy.should.have.been.calledOnce;
+            expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/deliveries?trackingNr=BA1000');
+            res[0].trackingNr.should.equal('BA1000');
+            done();
+        })
+        .catch(function (err) {
+            done(err);
+        });
+    });
+
+    it('should get deliveries by route id', function (done) {
+        var reqHandler = require('../../lib/reqHandlerPromised')();
+        var spy = sinon.spy(reqHandler);
+
+        var route = _.findWhere(fixtures.routes, {note: 'update'});
+
+        var delivery = {
+            "trackingNr": "DELIVERYWITHROUTE",
+            "state": "Assigned",
+            "route": route._id
+        };
+
+        api({ requestHandler: reqHandler }).deliveries.create([delivery], {
+            auth: { bearer: accessToken }
+        })
+        .then(function () {
+            return api({ requestHandler: spy }).deliveries.get({route: route._id}, {
+                auth: { bearer: accessToken }
+            });
+        })
+        .then(function (res) {
+            spy.should.have.been.calledOnce;
+            expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/deliveries?route=' + route._id);
+            res[0].trackingNr.should.equal("DELIVERYWITHROUTE");
+            res[0].route.should.equal(route._id);
+            done();
+        })
+        .catch(function (err) {
+            done(err);
+        });
+    });
+
     it('should update delivery', function (done) {
         var delivery = _.findWhere(fixtures.deliveries, {trackingNr: 'BA1000'});
         api().deliveries.update({
@@ -111,7 +160,7 @@ describe('deliveries', function () {
                 res.note.should.equal('new note');
                 done();
             }
-        });        
+        });
     });
 
     it('should replace delivery', function (done) {
@@ -133,7 +182,7 @@ describe('deliveries', function () {
                 res.trackingNr.should.equal('KE1000');
                 done();
             }
-        });        
+        });
     });
     it('should return error on update non existing delivery', function (done) {
         api().deliveries.update({
@@ -149,7 +198,7 @@ describe('deliveries', function () {
                 err.message.should.equal('No delivery with given id exists!');
                 done();
             }
-        });        
+        });
     });
 
     it('should return error when deleting non existing delivery', function (done) {
