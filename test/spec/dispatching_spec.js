@@ -47,7 +47,7 @@ describe('dispatching', function () {
                 dropAddress: 'Konevova 14, Praha',
                 // onlineSince: '2015-01-07T15:45:00Z',
                 deliveryDate: (new Date()).toJSON()
-            }, {            
+            }, {
                 auth: { bearer: accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
@@ -107,14 +107,15 @@ describe('dispatching', function () {
         api().dispatching.autoAssign(
             {
                 delivery: delivery
-            }, {            
+            }, {
                 headers: { Authorization: 'Bearer ' + accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
-                    should.exist(res.startDate);
-                    should.exist(res.endDate);
-                    should.exist(res.courier);
-                    should.equal(res.state, 'Assigned');
+                    // should.exist(res.startDate);
+                    // should.exist(res.endDate);
+                    // should.exist(res.courier);
+                    // should.equal(res.state, 'Assigned');
+                    should.equal(res.message, 'The delivery was successfully assigned.');
                     return done();
                 }
         });

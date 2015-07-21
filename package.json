@@ -28,8 +28,9 @@
   "devDependencies": {
     "chai": "^1.10.0",
     "mocha": "^2.1.0",
+    "mongodb": "^2.0.39",
+    "node-redis-pubsub": "^0.6.0",
     "sinon": "^1.11.1",
-    "sinon-chai": "^2.6.0",
-    "node-redis-pubsub": "git://github.com/mapilary/node-redis-pubsub.git"
+    "sinon-chai": "^2.6.0"
   }
 }
