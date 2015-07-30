@@ -43,7 +43,7 @@ describe('positions', function () {
                     timestamp: new Date().getTime(),
                     coords: coords
                 }
-            }, { 
+            }, {
                 auth: { bearer: accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
@@ -58,7 +58,7 @@ describe('positions', function () {
         var courier = _.findWhere(fixtures.users, {username: 'online'});
 
         api({ requestHandler: spy })
-            .positions.get({ courier: courier._id }, { 
+            .positions.get({ courier: courier._id }, {
                 auth: { bearer: accessToken },
                 callback: function (err, positions) {
                     if (err) { return done(err); }
@@ -79,22 +79,29 @@ describe('positions', function () {
         var courier = _.findWhere(fixtures.users, {username: 'online'});
 
         api({ requestHandler: spy })
-            .positions.getLastPositions({}, { 
+            .positions.getLastPositions({}, {
                 auth: { bearer: accessToken },
                 callback: function (err, positions) {
                     if (err) { return done(err); }
                     expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/positions/lastPositions');
                     positions.should.be.a('array');
                     positions.should.have.length(2);
-                    positions[0].company.should.equal(courier.company);
-                    positions[0].coords.accuracy.should.equal(100);
-                    positions[0].coords.latitude.should.equal(17.54);
-                    positions[0].coords.longitude.should.equal(16.6);
 
-                    positions[1].company.should.equal(courier.company);
-                    // positions[1].coords.accuracy.should.equal(100);
-                    positions[1].coords.latitude.should.equal(48.4189901);
-                    positions[1].coords.longitude.should.equal(17.0212386);
+                    var courier = _.findWhere(fixtures.users, { username: 'online' }),
+                        position = _.findWhere(positions, { courier: courier._id });
+
+                    position.company.should.equal(courier.company);
+                    position.coords.accuracy.should.equal(100);
+                    position.coords.latitude.should.equal(17.54);
+                    position.coords.longitude.should.equal(16.6);
+
+                    courier = _.findWhere(fixtures.users, { username: 'autodispatch' });
+                    position = _.findWhere(positions, { courier: courier._id });
+
+                    position.company.should.equal(courier.company);
+                    position.coords.accuracy.should.equal(50);
+                    position.coords.latitude.should.equal(48.4189901);
+                    position.coords.longitude.should.equal(17.0212386);
 
                     return done();
                 }

@@ -152,8 +152,9 @@ describe('users', function () {
 
         getToken(conf.rootUser, conf.rootPassword)
         .then(function (accessToken) {
-            return api({ requestHandler: spy }).users.setOnline(
-                { id: user._id, props: { online: true } },
+            return api({ requestHandler: spy }).users.setOnline({
+                id: user._id,
+                props: { online: true } },
                 { auth: { bearer: accessToken } }
             );
         })

@@ -22,9 +22,10 @@ describe('dispatching', function () {
             var courier = _.findWhere(fixtures.users, {username: 'autodispatch'});
             var position = {
                 coords: {
-                    latitude:48.4189901,
-                    longitude:17.0212386,
-                    timestamp:1381878960618
+                    latitude: 48.4189901,
+                    longitude: 17.0212386,
+                    accuracy: 50,
+                    timestamp: 1381878960618
                 }
             };
             return postFixture('positions/' + courier._id, position, accessToken);
@@ -45,15 +46,16 @@ describe('dispatching', function () {
             {
                 pickupAddress: 'Parizska 23, Praha',
                 dropAddress: 'Konevova 14, Praha',
-                // onlineSince: '2015-01-07T15:45:00Z',
-                deliveryDate: (new Date()).toJSON()
+                deadline: new Date(new Date().getTime()+5000*3600).toJSON()
             }, {
                 auth: { bearer: accessToken },
                 callback: function (err, res) {
                     if (err) { return done(err); }
-                    should.equal(res[0].courier.username, 'autodispatch');
-                    should.exist(res[0].pickupTime);
-                    should.exist(res[0].dropTime);
+                    var courier = _.findWhere(fixtures.users, {username: 'autodispatch'});
+                    should.equal(res[0].courierId, courier._id);
+                    should.exist(res[0].maxPickupTime);
+                    should.exist(res[0].expectedPickupTime);
+                    should.equal(res[0].startPoint, '48.4189901,17.0212386');
                     return done();
                 }
         });
@@ -106,7 +108,8 @@ describe('dispatching', function () {
 
         api().dispatching.autoAssign(
             {
-                delivery: delivery
+                delivery: delivery,
+                deadline: new Date(new Date().getTime()+5000*3600).toJSON()
             }, {
                 headers: { Authorization: 'Bearer ' + accessToken },
                 callback: function (err, res) {
