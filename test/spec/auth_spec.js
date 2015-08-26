@@ -26,7 +26,7 @@ describe('authentication', function() {
         api().authentication.login(null, {
             callback: function (err, user) {
                 if (err) {
-                    err.message.should.contain('Authorization header is required');
+                    err.message.should.contain('Invalid or missing "Authorization" header.');
                     err.should.be.an.instanceof(e.Unauthorized);
                     return done();
                 }
@@ -55,17 +55,11 @@ describe('authentication', function() {
     });
 
     it('should not authorize user on request level', function(done) {
-        // var requestHandler = sinon.spy(reqHandler);
-        // var api = apiAuth(client({ requestHandler: requestHandler }));
-        // api.auth(accessToken);
         api().users.get({ id: 'this' }, {
             callback: function (err, user) {
                 if (err) {
                     err.should.be.an.instanceof(e.AccessDenied);
                     err.message.should.contain('No user on request!');
-                    // requestHandler.should.have.been.called;
-                    // var call = requestHandler.getCall(0);
-                    // console.log(call.args);
                     return done();
                 }
                 return done(new Error('unexpected success'));
@@ -76,7 +70,6 @@ describe('authentication', function() {
     it('should authorize user on request level', function(done) {
         var user = _.findWhere(fixtures.users, {username: 'courier'});
         getToken(user.username + '#' + user.company, user.password).then(function (token) {
-            // console.log('token', token);
             api().users.getById({ id: 'this' }, {
                 auth: { bearer: token },
                 callback: function (err, user) {

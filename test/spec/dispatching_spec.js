@@ -75,10 +75,6 @@ describe('dispatching', function () {
                 "phoneNr": "00421903475680",
                 "email": "john@john.john",
                 "text": "Praha, Konevova 14, CZ",
-                // "city": "Praha",
-                // "street": "Konevova",
-                // "housenumber": 14,
-                // "countryCode": "CZ",
                 "validFrom": "2014-09-25T14:00:45.702Z",
                 "validTo": "2014-09-25T16:00:45.708Z",
                 "coords": {
@@ -92,10 +88,6 @@ describe('dispatching', function () {
                 "phoneNr": "00421915694707",
                 "email": "",
                 "text": "Bratislava, Kazanska 3, SK",
-                // "city": "Bratislava",
-                // "street": "Kazanska",
-                // "housenumber": 3,
-                // "countryCode": "SK",
                 "validFrom": "2014-09-25T06:00:04.168Z",
                 "validTo": "2014-09-25T07:00:04.177Z",
                 "coords": {

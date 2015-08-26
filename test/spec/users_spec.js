@@ -94,7 +94,7 @@ describe('users', function () {
             callback: function (err, res) {
                 if (err) { return done(err); }
                 spy.should.have.been.calledOnce;
-                expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users?roles=courier');
+                expect(spy.getCall(0).args[1].url).to.equal(config.url + '/users?roles=courier');
                 return done();
             }
         });
@@ -110,7 +110,7 @@ describe('users', function () {
                 res.should.have.length(2);
                 res[0].username.should.equal('online');
                 spy.should.have.been.calledOnce;
-                expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users?online=true');
+                expect(spy.getCall(0).args[1].url).to.equal(config.url + '/users?online=true');
                 return done();
             }
         });
@@ -136,7 +136,7 @@ describe('users', function () {
         })
         .then(function (user) {
             spy.should.have.been.calledOnce;
-            expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users/' + user._id + '/online');
+            expect(spy.getCall(0).args[1].url).to.equal(config.url + '/users/' + user._id + '/online');
             user.online.should.equal(false);
             return done();
         })
@@ -166,7 +166,7 @@ describe('users', function () {
         })
         .then(function (user) {
             spy.should.have.been.calledOnce;
-            expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/users/' + user._id + '/online');
+            expect(spy.getCall(0).args[1].url).to.equal(config.url + '/users/' + user._id + '/online');
             user.online.should.equal(true);
             return done();
         })

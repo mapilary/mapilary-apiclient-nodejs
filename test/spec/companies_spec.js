@@ -33,8 +33,7 @@ describe('companies', function () {
             return done();
         });
 
-        api().companies.register(company, { 
-            // auth: { bearer: accessToken },
+        api().companies.register(company, {
             callback: function (err, res) {
                 if (err) { return done(err); }
                 res.message.should.equal('Company has been created. Check your email for how to active your account');

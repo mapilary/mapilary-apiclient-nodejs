@@ -24,7 +24,7 @@ describe('positions', function () {
         });
     });
 
-    it('should store courier position', function (done) {
+    it('should store single courier position', function (done) {
 
         var courier = _.findWhere(fixtures.users, {username: 'online'});
 
@@ -62,7 +62,7 @@ describe('positions', function () {
                 auth: { bearer: accessToken },
                 callback: function (err, positions) {
                     if (err) { return done(err); }
-                    expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/positions?courier=' + courier._id);
+                    expect(spy.getCall(0).args[1].url).to.equal(config.url + '/positions?courier=' + courier._id);
                     positions.should.be.a('array');
                     positions.should.have.length(1);
                     positions[0].company.should.equal(courier.company);
@@ -74,6 +74,49 @@ describe('positions', function () {
             });
     });
 
+    it('should store array of courier positions', function (done) {
+
+        var courier = _.findWhere(fixtures.users, {username: 'online'});
+
+        //1410932792207, 17.54, 16.6, 100
+        var positions = [{
+            timestamp: new Date().getTime(),
+            coords: {
+                accuracy: 100,
+                latitude: 17.54,
+                longitude: 16.6,
+                timestamp: 1410932792207
+            }
+        }, {
+                timestamp: new Date().getTime(),
+                coords: {
+                    accuracy: 104,
+                    latitude: 18.54,
+                    longitude: 17.66,
+                    timestamp: 1510932792207
+                }
+        }];
+
+        var client = api({promise: true});
+        client.positions.create({
+            courier: courier._id,
+            position: positions
+        }, {
+            auth: { bearer: accessToken }
+        })
+        .then(function (res) {
+            return client.positions.get({ courier: courier._id }, { auth: { bearer: accessToken } });
+        })
+        .then(function (res) {
+            // console.log(res);
+            expect(res.length).to.equal(3);
+            return done();
+        })
+        .catch(function (err) {
+            return done(err);
+        });
+    });
+
     it('should retrieve last positions of all couriers', function (done) {
         var spy = sinon.spy(reqHandler);
         var courier = _.findWhere(fixtures.users, {username: 'online'});
@@ -83,7 +126,7 @@ describe('positions', function () {
                 auth: { bearer: accessToken },
                 callback: function (err, positions) {
                     if (err) { return done(err); }
-                    expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/positions/lastPositions');
+                    expect(spy.getCall(0).args[1].url).to.equal(config.url + '/positions/lastPositions');
                     positions.should.be.a('array');
                     positions.should.have.length(2);
 

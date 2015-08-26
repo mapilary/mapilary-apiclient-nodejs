@@ -1,23 +1,27 @@
-var fs = require('fs'),
-    Mocha = require("mocha"),
-    path = require('path');
- 
+var fs    = require('fs'),
+    Mocha = require('mocha'),
+    path  = require('path');
+
 // Our Mocha runner
 var mocha = new Mocha({
-    ui:"bdd",
-    reporter:"spec",
-    timeout:60000,
-    slow:10000
+    ui: 'bdd',
+    reporter: 'spec',
+    timeout: 60000,
+    slow: 10000
 });
- 
+
 // Files which need to be ignored
 var avoided = [ 'node_modules' ];
 
-require('./prepare')(function (err) {
-    if (err) { throw err; }
+require('./prepare')()
+.then(function () {
     run();
+})
+.catch(function (err) {
+    throw err;
 });
- 
+
+
 function run () {
     // Add the tests to the Mocha instance
     (addFiles = function(dir){
@@ -32,7 +36,7 @@ function run () {
             mocha.addFile(dir + '/' + file);
         });
     })(path.join(process.cwd(), process.argv[2] || "."));
-     
+
     // Run the files in Mocha
     mocha.run(function(failures){
         process.exit(failures);

@@ -1,8 +1,9 @@
 require('./common');
-var _           = require('underscore'),
-    conf        = Object.freeze(require('./config.json')),
-    Promise     = require('bluebird'),
-    NRP         = require('node-redis-pubsub');
+
+var _       = require('underscore'),
+    client  = api({ promise: true }),
+    Promise = require('bluebird');
+    conf    = Object.freeze(require('./config.json')),
 
 fixtures = {
     company: 'test' + new Date().getTime()
@@ -23,44 +24,61 @@ function buildUsers (collection, company) {
     });
 }
 
-module.exports = function (callback) {
+module.exports = function () {
 
     var token, companyName = fixtures.company;
 
-    var nrp = new NRP(conf.db.redis, { scope: conf.db.redis.scope });
-
     // get apikey for root user
-    getToken(conf.rootUser, conf.rootPassword)
-    .then(function (_token) {
-        token = _token;
-        //create company
-        return new Promise(function (resolve, reject) {
-            // wait for activation token
-            nrp.on('company:register', function () {
-                return resolve();
-            });
+    return getToken(conf.users.root.username, conf.users.root.password)
+    .then(function (token) {
+        console.log('Creating company %s ...', companyName);
 
-            postFixture('companies/register', {
-                name: companyName,
-                admin: {
-                    username: 'admina',
-                    profile: { email: buildEmail('admina', companyName) }
+        return postFixture('companies/register', {
+            name: companyName,
+            admin: {
+                username: conf.users.admin.username,
+                password: conf.users.admin.password,
+                profile: { email: buildEmail(conf.users.admin.username, companyName) }
+            }
+        }, token)
+        .then(function () {
+            return client.users.get(
+                { username: conf.users.admin.username, company: companyName },
+                { auth: { bearer: token } }
+            );
+        })
+        .then(function (admins) {
+            var admin = admins[0];
+            console.log('Activate company admin user...');
+            return client.users.update({
+                id: admin._id,
+                props: {
+                    status: 'active'
                 }
-            }, token);
+            }, { auth: { bearer: token } })
+            .then(function () {
+                return admin;
+            });
         });
     })
-    .then(function () {
+    .then(function (admin) {
+        console.log('Obtaining access token for admin user...');
+        return getToken([admin.username, admin.company].join('#'), conf.users.admin.password);
+    })
+    .then(function (_token) {
+        token = _token;
+        console.log('Creating users...');
         var fixture = buildUsers(require('./fixtures/users.json'), companyName);
         return postFixture('users', fixture, token)
         .then(function (users) {
             fixtures.users = _.map(users, function (user, idx) {
-                // user.company  = 'test';
                 user.password = fixture[idx].password;
                 return user;
             });
         });
     })
     .then(function () {
+        console.log('Creating deliveries...');
         var fixture = handleCompany(require('./fixtures/deliveries.json'), companyName);
         return postFixture('deliveries', fixture, token)
         .then(function (deliveries) {
@@ -68,6 +86,7 @@ module.exports = function (callback) {
         });
     })
     .then(function () {
+        console.log('Creating routes...');
         var fixture = _.map(require('./fixtures/routes.json'),
             function (route) {
                 route.company   = companyName;
@@ -80,11 +99,5 @@ module.exports = function (callback) {
         .then(function (routes) {
             fixtures.routes = routes;
         });
-    })
-    .then(function () {
-        return callback();
-    })
-    .catch(function (err) {
-        return callback(err);
     });
 };

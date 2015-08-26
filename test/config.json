@@ -1,12 +1,20 @@
 {
-	"url": "http://localhost:8888",
-	"rootUser": "root@mapilary.com",
-    "rootPassword": "123",
+	"url": "http://localhost:4444",
+	"users": {
+		"root": {
+			"username": "root@mapilary.com",
+		    "password": "123"
+		},
+		"admin": {
+			"username": "admina",
+		    "password": "123"
+		}
+	},
     "db": {
         "redis": {
             "port": 6379,
             "host": "localhost",
-            "scope": "test:u"
+            "scope": "testing:u"
         }
     }
 }

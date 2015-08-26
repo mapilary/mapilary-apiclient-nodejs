@@ -86,19 +86,16 @@ describe('routes', function () {
 
     it('should update route', function (done) {
         var route = _.findWhere(fixtures.routes, {note: 'update'});
-        // console.log(route);
         api().routes.update({
                 id: route._id,
                 props: {
                     deliveries: [],
-                    // etr: {},
                     note: 'new note'
                 }
             }, {
             auth: { bearer: accessToken },
             callback: function (err, res) {
                 if (err) { return done(err); }
-                //console.log(res);
                 res.note.should.equal('new note');
                 done();
             }
@@ -129,7 +126,7 @@ describe('routes', function () {
                 callback: function (err, res) {
                     if (err) { return done(err); }
                     spy.should.have.been.calledOnce;
-                    expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/routes?startDate=%7Bgte%7D2015-01-07T00%3A00%3A00Z&endDate=%7Blte%7D2015-01-08T00%3A00%3A00Z&embed=deliveries');
+                    expect(spy.getCall(0).args[1].url).to.equal(config.url + '/routes?startDate=%7Bgte%7D2015-01-07T00%3A00%3A00Z&endDate=%7Blte%7D2015-01-08T00%3A00%3A00Z&embed=deliveries');
                     res.should.have.length(2);
                     done();
                 }

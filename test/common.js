@@ -1,5 +1,4 @@
-var conf        = Object.freeze(require('./config.json'));
-    Promise     = require('bluebird'),
+var Promise     = require('bluebird'),
     mongodb     = require('mongodb'),
     request     = Promise.promisifyAll(require('request')),
 	MongoClient = mongodb.MongoClient,
@@ -8,14 +7,17 @@ var conf        = Object.freeze(require('./config.json'));
 Promise.promisifyAll(Collection.prototype);
 Promise.promisifyAll(MongoClient);
 
+config = Object.freeze(require('./config.json'));
+
 api = function (options) {
-    options = options || {};
-    options.promise = false;
-    return require('../lib/client')(options);
+    options = options || { promise: false };
+    var client = require('../lib/client')(options);
+    client.url(config.url);
+    return client;
 };
 
 mongo = function () {
-    var s = conf.db.mongo;
+    var s = config.db.mongo;
     var credentials = s.user ? [s.user, ':', s.pass, '@'].join('') : '';
     var url = ['mongodb://', credentials, s.host, ':', s.port, '/', s.db].join('');
 
@@ -29,7 +31,7 @@ mongo = function () {
 
 getToken = function (user, password) {
     return request
-        .postAsync([conf.url, 'token'].join('/'), {
+        .postAsync([config.url, 'token'].join('/'), {
             json: true,
             auth: {
                 user: user,
@@ -46,7 +48,7 @@ getToken = function (user, password) {
 };
 
 postFixture = function (path, fixture, accessToken) {
-    return request.postAsync([conf.url, path].join('/'), {
+    return request.postAsync([config.url, path].join('/'), {
         json: fixture,
         headers: { Authorization: 'Bearer ' + accessToken }
     }).spread(function(response, body) {

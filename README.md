@@ -13,7 +13,7 @@ This module should be used as library in your project, which is based on Mapilar
 1. First include module in your project:
 
 ```
-var api = require('mapilary-apiclient-nodejs')({ promise: true });
+var api = require('mapilary-apiclient')({ promise: true });
 ```
 
 2. Set url of mapilary endpoint
@@ -73,7 +73,12 @@ node cli.js -e https://api.mapilary.com/v1 -q users.getById[{id:this}] -u userna
 
 Get user(s) by username
 ```
-node cli.js -e https://api.mapilary.com/v1 -q users.get[{'username':'username'}] -u username#company -p password
+node cli.js -e https://api.mapilary.com/v1 -q users.get[{username:username}] -u username#company -p password
+```
+
+In case you want to pass multiple parameters:
+```
+node cli.js -e http://localhost:4444 -q users.get[{username:username\,company:mycompany}] -u username#company -p password
 ```
 
 ## For developers

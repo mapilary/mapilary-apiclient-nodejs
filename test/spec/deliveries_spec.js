@@ -105,7 +105,7 @@ describe('deliveries', function () {
         })
         .then(function (res) {
             spy.should.have.been.calledOnce;
-            expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/deliveries?trackingNr=BA1000');
+            expect(spy.getCall(0).args[1].url).to.equal(config.url + '/deliveries?trackingNr=BA1000');
             res[0].trackingNr.should.equal('BA1000');
             done();
         })
@@ -136,7 +136,7 @@ describe('deliveries', function () {
         })
         .then(function (res) {
             spy.should.have.been.calledOnce;
-            expect(spy.getCall(0).args[1].url).to.equal('http://localhost:8888/deliveries?route=' + route._id);
+            expect(spy.getCall(0).args[1].url).to.equal(config.url + '/deliveries?route=' + route._id);
             res[0].trackingNr.should.equal("DELIVERYWITHROUTE");
             res[0].route.should.equal(route._id);
             done();

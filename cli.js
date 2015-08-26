@@ -5,7 +5,7 @@ var _ = require('underscore');
 var program = require('commander')
   .version(require('./package.json').version)
   .option('-e --url [url]', 'url of api-docs endpoint eg. https://api.mapilary.com/v1')
-  .option('-q, --query [query]', 'query eg. users.get[{id:this}]')
+  .option('-q, --query [query]', 'query eg. users.getById[{id:this}]')
   .option('-u, --user [string]', 'username#company or username@company.com')
   .option('-p, --pass [string]', 'password')
   .option('list', 'list all available methods')
@@ -95,9 +95,15 @@ if (!client[domain][action[1]]) {
 
 var args = action[2] || '{}';
 _.forEach(args.match(/(\w+)/g), function (word) {
-	args = args.replace(word, '"' + word + '"');
+	args = args.replace(new RegExp(word), '"' + word + '"');
 });
-args = JSON.parse(args);
+
+try {
+    args = JSON.parse(args);
+} catch (err) {
+    console.error('Error parsing query: %s is not valid json.', args);
+    process.exit(1);
+}
 
 action = action[1];
 
