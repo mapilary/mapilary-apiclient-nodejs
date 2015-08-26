@@ -55,7 +55,7 @@ describe('authentication', function() {
     });
 
     it('should not authorize user on request level', function(done) {
-        api().users.get({ id: 'this' }, {
+        api().users.get({ id: 'nobody' }, {
             callback: function (err, user) {
                 if (err) {
                     err.should.be.an.instanceof(e.AccessDenied);

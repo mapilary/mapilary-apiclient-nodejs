@@ -121,7 +121,7 @@ describe('users', function () {
         var user = _.findWhere(fixtures.users, {username: 'online'});
         var spy = sinon.spy(reqHandler);
 
-        getToken(conf.rootUser, conf.rootPassword)
+        getToken(conf.users.root.username, conf.users.root.password)
         .then(function (accessToken) {
             return api({ requestHandler: spy }).users.setOnline(
                 { id: user._id, props: { online: false } },
@@ -150,7 +150,7 @@ describe('users', function () {
         var user = _.findWhere(fixtures.users, {username: 'online'});
         var spy = sinon.spy(reqHandler);
 
-        getToken(conf.rootUser, conf.rootPassword)
+        getToken(conf.users.root.username, conf.users.root.password)
         .then(function (accessToken) {
             return api({ requestHandler: spy }).users.setOnline({
                 id: user._id,
