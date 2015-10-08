@@ -1,21 +1,22 @@
 #!/usr/bin/env node
 
-var _ = require('underscore');
+var _       = require('underscore'),
+    program = require('commander'),
+    errors  = [],
+    schema;
 
-var program = require('commander')
+program
   .version(require('./package.json').version)
   .option('-e --url [url]', 'url of api-docs endpoint eg. https://api.mapilary.com/v1')
-  .option('-q, --query [query]', 'query eg. users.getById[{id:this}]')
+  .option('-q, --query [query]', 'query eg. users.getById[\'{"id": "this"}\']')
   .option('-u, --user [string]', 'username#company or username@company.com')
   .option('-p, --pass [string]', 'password')
   .option('list', 'list all available methods')
   .option('info', 'info about method eg. users.getById')
   .parse(process.argv);
 
-var errors = [];
-
 if (program.list) {
-    var schema = require('./schema.json');
+    schema = require('./schema.json');
     _.each(schema.apis, function (api) {
         console.log(api.path.substring(1));
         _.each(api.apiDeclaration.apis, function (api) {
@@ -28,7 +29,11 @@ if (program.list) {
 }
 
 if (program.info) {
-    var schema = require('./schema.json');
+    schema = require('./schema.json');
+    if (program.args.length === 0) {
+        console.error('Missing method name');
+        program.help();
+    }
     var method = program.args[0].split('.');
     var found = _.some(schema.apis, function (api) {
         if  (api.path.substring(1) === method[0]) {
@@ -44,6 +49,7 @@ if (program.info) {
     });
     if (!found) {
         console.error('Method not found: %s', program.args[0]);
+        process.exit(1);
     }
     process.exit(0);
 }
@@ -69,43 +75,34 @@ if (errors.length > 0) {
     program.help();
 }
 
-var client = require('./lib/client')({ promise: true }),
-    query = program.query.split('.');
-
-if (query.length !== 2) {
+var client = require('./lib/client')({ promise: true });
+var query = program.query.match(/(.*)(?:\[(.*)\])$/);
+if (!query || query.length !== 3) {
 	console.error('Wrong format of query. Must be domain.action[params]');
     process.exit(1);
 }
 
-var domain = query[0];
-if (!client[domain]) {
-    console.error('Unknown domain: %s', domain);
+var domain = query[1].split('.');
+if (!domain || domain.length !== 2) {
+    console.error('Wrong format of query. Must be domain.action[params]');
     process.exit(1);
 }
 
-var action = query[1].match(/(.*)(?:\[(.*)\])$/);
-if (!action) {
-    console.error('Wrong format of action: %s.%s', domain, query[1]);
+if (!client[domain[0]]) {
+    console.error('Unknown domain: %s', domain[0]);
     process.exit(1);
 }
-if (!client[domain][action[1]]) {
-    console.error('Unknown action: %s.%s', domain, action[1]);
+if (!client[domain[0]][domain[1]]) {
+    console.error('Wrong format of action: %s.%s', domain[0], domain[1]);
     process.exit(1);
 }
-
-var args = action[2] || '{}';
-_.forEach(args.match(/(\w+)/g), function (word) {
-	args = args.replace(new RegExp(word), '"' + word + '"');
-});
 
 try {
-    args = JSON.parse(args);
+    var args = JSON.parse(query[2]);
 } catch (err) {
-    console.error('Error parsing query: %s is not valid json.', args);
+    console.error('Error parsing query: %s is not valid json.', query[2]);
     process.exit(1);
 }
-
-action = action[1];
 
 client.url(program.url);
 client.authentication.login(null, {
@@ -115,8 +112,8 @@ client.authentication.login(null, {
     }
 }).then(function (token) {
     console.log('Granted access_token: %s', token.access_token);
-    console.log('Invoking query: %s.%s with: %s', domain, action, JSON.stringify(args));
-    client[domain][action](args, { auth: { bearer: token.access_token } })
+    console.log('Invoking query: %s.%s with: %s', domain[0], domain[1], JSON.stringify(args));
+    client[domain[0]][domain[1]](args, { auth: { bearer: token.access_token } })
 	.then(function (obj) {
 		console.log(JSON.stringify(obj, null, 2));
 	})

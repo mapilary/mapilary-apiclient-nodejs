@@ -68,17 +68,23 @@ node cli.js info users.getById
 Examples:
 
 ```
-node cli.js -e https://api.mapilary.com/v1 -q users.getById[{id:this}] -u username#company -p password
+node cli.js -e https://api.mapilary.com/v1 -q users.getById['{"id":"this"}'] -u username#company -p password
 ```
 
 Get user(s) by username
 ```
-node cli.js -e https://api.mapilary.com/v1 -q users.get[{username:username}] -u username#company -p password
+node cli.js -e https://api.mapilary.com/v1 -q users.get['{"username":"username"}'] -u username#company -p password
 ```
 
 In case you want to pass multiple parameters:
 ```
-node cli.js -e http://localhost:4444 -q users.get[{username:username\,company:mycompany}] -u username#company -p password
+node cli.js -e https://api.mapilary.com/v1 -q users.get['{"username":"username","company":"mycompany"}'] -u username#company -p password
+```
+
+Geocoding
+```
+node cli.js -e https://api.mapilary.com/v1 -q geocode.search['{"$text":"Gemerska 4, Bratislava"}'] -u username#company -p password
+node cli.js -e https://api.mapilary.com/v1 -q geocode.reverse['{"latitude":48.1506094,"longitude":17.1362979}'] -u dispatcher1#becourier -p 123456
 ```
 
 ## For developers
