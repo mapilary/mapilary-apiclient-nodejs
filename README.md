@@ -76,6 +76,11 @@ Get user(s) by username
 node cli.js -e https://api.mapilary.com/v1 -q users.get['{"username":"username"}'] -u username#company -p password
 ```
 
+Get delivery by trackingNr (no user auth needed only pinCode)
+```
+node cli.js -e https://api.mapilary.com/v1 -q deliveries.find['{"trackingNr":"EG04n0000","pinCode":"257428"}'] --noauth
+```
+
 In case you want to pass multiple parameters:
 ```
 node cli.js -e https://api.mapilary.com/v1 -q users.get['{"username":"username","company":"mycompany"}'] -u username#company -p password

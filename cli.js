@@ -11,6 +11,7 @@ program
   .option('-q, --query [query]', 'query eg. users.getById[\'{"id": "this"}\']')
   .option('-u, --user [string]', 'username#company or username@company.com')
   .option('-p, --pass [string]', 'password')
+  .option('--noauth', 'skip authenication')
   .option('list', 'list all available methods')
   .option('info', 'info about method eg. users.getById')
   .parse(process.argv);
@@ -62,12 +63,14 @@ if (!program.query) {
     errors.push('Missing query');
 }
 
-if (!program.user) {
-    errors.push('Missing user');
-}
+if (!program.noauth) {
+    if (!program.user) {
+      errors.push('Missing user');
+    }
 
-if (!program.pass) {
-    errors.push('Missing password');
+    if (!program.pass) {
+      errors.push('Missing password');
+    }
 }
 
 if (errors.length > 0) {
@@ -78,7 +81,7 @@ if (errors.length > 0) {
 var client = require('./lib/client')({ promise: true });
 var query = program.query.match(/(.*)(?:\[(.*)\])$/);
 if (!query || query.length !== 3) {
-	console.error('Wrong format of query. Must be domain.action[params]');
+    console.error('Wrong format of query. Must be domain.action[params]');
     process.exit(1);
 }
 
@@ -105,19 +108,31 @@ try {
 }
 
 client.url(program.url);
+
+if (program.noauth) {
+    return client[domain[0]][domain[1]](args)
+    .then(function (obj) {
+        console.log(JSON.stringify(obj, null, 2));
+    })
+    .catch(function (err) {
+        console.error('Error occured', err);
+    });
+}
+
 client.authentication.login(null, {
     auth: {
         user: program.user,
         pass: program.pass
     }
-}).then(function (token) {
+})
+.then(function (token) {
     console.log('Granted access_token: %s', token.access_token);
     console.log('Invoking query: %s.%s with: %s', domain[0], domain[1], JSON.stringify(args));
-    client[domain[0]][domain[1]](args, { auth: { bearer: token.access_token } })
-	.then(function (obj) {
-		console.log(JSON.stringify(obj, null, 2));
-	})
-	.catch(function (err) {
-		console.error('Error occured', err);
-	});
+    return client[domain[0]][domain[1]](args, { auth: { bearer: token.access_token } });
+})
+.then(function (obj) {
+    console.log(JSON.stringify(obj, null, 2));
+})
+.catch(function (err) {
+    console.error('Error occured', err);
 });
